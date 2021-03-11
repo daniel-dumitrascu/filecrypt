@@ -21,7 +21,7 @@ pip install cryptography
 ```
 ## Running the script
 
-Examples on how the scrips can be executed
+Examples on how the script can be executed
 
 ### Generating the key pair
 

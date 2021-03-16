@@ -1,6 +1,7 @@
 from cryptography.fernet import Fernet
 from enum import Enum
 from datetime import datetime
+import time
 import os
 import math
 import base64
@@ -35,26 +36,26 @@ def load_key(path: str):
     
     return key
 
-def encrypt_file(key, file_path):
-    chunck_size = 512
+def encrypt_file(key, file_to_encrypt_path, output_path):
+    chunck_size = 16384
     file_size = None
     fernet_instance = Fernet(key)
 
     try:
-        file_size = os.path.getsize(file_path)
+        file_size = os.path.getsize(file_to_encrypt_path)
     except:
         print("Error in getting the file size")
         return
 
-    original_filename = os.path.basename(file_path)
+    original_filename = os.path.basename(file_to_encrypt_path)
     secret_filename = constr_secret_filename(original_filename)
-    dirname_path = os.path.dirname(file_path)
-    secret_filename_path = dirname_path + "/" + secret_filename
+    secret_filename_path = output_path + "/" + secret_filename
 
     encrypted_file_handler = open(secret_filename_path, 'wb')
 
     try:
-        with open(file_path, 'rb') as file_handler:
+        with open(file_to_encrypt_path, 'rb') as file_handler:
+            print("Encrypting file " + file_to_encrypt_path)
             chunck_nr = math.ceil(file_size / chunck_size)
             chunk_data = file_handler.read(chunck_size)
             chunk_index = 1
@@ -66,34 +67,45 @@ def encrypt_file(key, file_path):
                 encrypted_file_handler.write(b64decoded_data)
                 chunk_data = file_handler.read(chunck_size)
     except Exception as e:
-        print("Problem when encrypting the file " + file_path + ": "+ str(e))        
+        print("Problem when encrypting the file " + file_to_encrypt_path + ": "+ str(e))        
     
     encrypted_file_handler.close()
 
-def decrypt_file(key, file_path):
+def decrypt_file(key, file_to_decrypt_path, output_path):
+    file_size = None
     fernet_instance = Fernet(key)
 
-    encoded_filename = os.path.basename(file_path)
+    try:
+        file_size = os.path.getsize(file_to_decrypt_path)
+    except:
+        print("Error in getting the file size")
+        return
+
+    encoded_filename = os.path.basename(file_to_decrypt_path)
     original_filename = constr_original_filename(encoded_filename)
-    dirname_path = os.path.dirname(file_path)
-    original_filename_path = dirname_path + "/" + original_filename
+    original_filename_path = output_path + "/" + original_filename
 
     original_file_handler = open(original_filename_path, 'wb')
 
     try:
-        with open(file_path, 'rb') as secret_file_handler:
+        with open(file_to_decrypt_path, 'rb') as secret_file_handler:
+            print("Decrypting file " + file_to_decrypt_path)
             # We read and decrypt each token at a time
             # To know how much we need to read we need to know the token structure and len
-            # Version(1 byte) + Date created(8 bytes) + IV(16 bytes) + Cipher(chunck_size + 16) + HMAC(32 bytes) --> 585 bytes.
-            bytes_to_read = 585
+            # Version(1 byte) + Date created(8 bytes) + IV(16 bytes) + Cipher(chunck_size + 16) + HMAC(32 bytes)  
+            bytes_to_read = 1 + 8 + 16 + 16384 + 16 + 32
+            token_nr = math.ceil(file_size / bytes_to_read)
             token = secret_file_handler.read(bytes_to_read)
+            token_index = 1
             while token:
+                print("Decrypting token " + str(token_index) + " of " + str(token_nr))
                 b64encoded_token = base64.urlsafe_b64encode(token)
                 decoded_data = fernet_instance.decrypt(b64encoded_token)
+                token_index += 1
                 original_file_handler.write(decoded_data)
                 token = secret_file_handler.read(bytes_to_read)   
     except Exception as e:
-        print("Problem when decrypting the file " + file_path + ": "+ str(e)) 
+        print("Problem when decrypting the file " + file_to_decrypt_path + ": "+ str(e)) 
 
     original_file_handler.close()
 
@@ -106,5 +118,35 @@ def constr_original_filename(encoded_filename: str):
 
 #generate_and_save_key('C:/Home/crypt')
 key = load_key('C:/Home/crypt/16-03-2021_18-09-01_private.key')
-#encrypt_file(key, 'C:/Home/crypt/test2.png')
-decrypt_file(key, 'C:/Home/crypt/test2.png.crypt')
+
+start_time = time.time()
+
+# 512 bytes size file
+encrypt_file(key, 'C:/Home/crypt/original_test_files/file_512.txt', 'C:/Home/crypt/encrypted_test_files')
+decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_512.txt.crypt', 'C:/Home/crypt/decrypted_files')
+
+# 511 bytes size file
+encrypt_file(key, 'C:/Home/crypt/original_test_files/file_511.txt', 'C:/Home/crypt/encrypted_test_files')
+decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_511.txt.crypt', 'C:/Home/crypt/decrypted_files')
+
+# 513 bytes size file
+encrypt_file(key, 'C:/Home/crypt/original_test_files/file_513.txt', 'C:/Home/crypt/encrypted_test_files')
+decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_513.txt.crypt', 'C:/Home/crypt/decrypted_files')
+
+# 1024 bytes size file
+encrypt_file(key, 'C:/Home/crypt/original_test_files/file_1024.txt', 'C:/Home/crypt/encrypted_test_files')
+decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_1024.txt.crypt', 'C:/Home/crypt/decrypted_files')
+
+# 1026 bytes size file
+encrypt_file(key, 'C:/Home/crypt/original_test_files/file_1026.txt', 'C:/Home/crypt/encrypted_test_files')
+decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_1026.txt.crypt', 'C:/Home/crypt/decrypted_files')
+
+# 5 MB size file
+encrypt_file(key, 'C:/Home/crypt/original_test_files/file_5MB.pdf', 'C:/Home/crypt/encrypted_test_files')
+decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_5MB.pdf.crypt', 'C:/Home/crypt/decrypted_files')
+
+# 50 MB size file
+encrypt_file(key, 'C:/Home/crypt/original_test_files/file_50MB.pdf', 'C:/Home/crypt/encrypted_test_files')
+decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_50MB.pdf.crypt', 'C:/Home/crypt/decrypted_files')
+
+print('Execution time: ' + str(time.time() - start_time) + " seconds")

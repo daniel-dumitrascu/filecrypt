@@ -1,6 +1,6 @@
-# Filecrypt
+# FileCrypt
 
-Encrypting and decrypting files in a tree based directory with RSA keys.
+Encrypting and decrypting files in a tree based directory using symmetric cryptography.
 
 ## Getting Started
 

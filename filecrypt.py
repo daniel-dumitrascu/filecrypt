@@ -2,9 +2,11 @@ from cryptography.fernet import Fernet
 from enum import Enum
 from datetime import datetime
 import time
+import sys
 import os
 import math
 import base64
+import argparse
 
 def generate_key():
     return Fernet.generate_key()
@@ -37,14 +39,14 @@ def load_key(path: str):
     return key
 
 def encrypt_file(key, file_to_encrypt_path, output_path):
-    chunck_size = 16384
+    chunck_size = 1048576 # 1MB
     file_size = None
     fernet_instance = Fernet(key)
 
     try:
         file_size = os.path.getsize(file_to_encrypt_path)
     except:
-        print("Error in getting the file size")
+        print("Error in getting the file size of %s" % file_to_encrypt_path)
         return
 
     original_filename = os.path.basename(file_to_encrypt_path)
@@ -78,7 +80,7 @@ def decrypt_file(key, file_to_decrypt_path, output_path):
     try:
         file_size = os.path.getsize(file_to_decrypt_path)
     except:
-        print("Error in getting the file size")
+        print("Error in getting the file size of %s" % file_to_decrypt_path)
         return
 
     encoded_filename = os.path.basename(file_to_decrypt_path)
@@ -93,7 +95,7 @@ def decrypt_file(key, file_to_decrypt_path, output_path):
             # We read and decrypt each token at a time
             # To know how much we need to read we need to know the token structure and len
             # Version(1 byte) + Date created(8 bytes) + IV(16 bytes) + Cipher(chunck_size + 16) + HMAC(32 bytes)  
-            bytes_to_read = 1 + 8 + 16 + 16384 + 16 + 32
+            bytes_to_read = 1 + 8 + 16 + 1048576 + 16 + 32
             token_nr = math.ceil(file_size / bytes_to_read)
             token = secret_file_handler.read(bytes_to_read)
             token_index = 1
@@ -115,38 +117,84 @@ def constr_secret_filename(original_filename: str):
 def constr_original_filename(encoded_filename: str):
     return os.path.splitext(encoded_filename)[0]
 
+def encrypt_dir_tree(key_path: str, input_path: str, output_path: str):
+    if os.path.isfile(key_path) == False:
+        print('The key path does not point to a valid file')
+        return
 
-#generate_and_save_key('C:/Home/crypt')
-key = load_key('C:/Home/crypt/16-03-2021_18-09-01_private.key')
+    key = load_key(key_path)
+    if key == None:
+        return
 
-start_time = time.time()
+    for dirpath, dirs, files in os.walk(input_path):
+        relative_path = os.path.relpath(dirpath, input_path)
+        new_path = output_path + "/" + relative_path
+           
+        if os.path.isdir(new_path) == False:
+            print('Creating directory %s' % new_path)
+            try:
+                os.mkdir(new_path)
+            except OSError as e:
+                print ("Creation of the directory " + new_path + " failed: " + e)
+                print ("Skipping encryption of files from directory %s" % new_path)
+                continue
 
-# 512 bytes size file
-encrypt_file(key, 'C:/Home/crypt/original_test_files/file_512.txt', 'C:/Home/crypt/encrypted_test_files')
-decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_512.txt.crypt', 'C:/Home/crypt/decrypted_files')
+        for file in files:
+            file_path = dirpath + "/" + file
+            encrypt_file(key, file_path, new_path)
 
-# 511 bytes size file
-encrypt_file(key, 'C:/Home/crypt/original_test_files/file_511.txt', 'C:/Home/crypt/encrypted_test_files')
-decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_511.txt.crypt', 'C:/Home/crypt/decrypted_files')
+def decrypt_dir_tree(key_path: str, input_path: str, output_path: str):
+    if os.path.isfile(key_path) == False:
+        print('The key path does not point to a valid file')
+        return
 
-# 513 bytes size file
-encrypt_file(key, 'C:/Home/crypt/original_test_files/file_513.txt', 'C:/Home/crypt/encrypted_test_files')
-decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_513.txt.crypt', 'C:/Home/crypt/decrypted_files')
+    key = load_key(key_path)
+    if key == None:
+        return
 
-# 1024 bytes size file
-encrypt_file(key, 'C:/Home/crypt/original_test_files/file_1024.txt', 'C:/Home/crypt/encrypted_test_files')
-decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_1024.txt.crypt', 'C:/Home/crypt/decrypted_files')
+    for dirpath, dirs, files in os.walk(input_path):
+        relative_path = os.path.relpath(dirpath, input_path)
+        new_path = output_path + "/" + relative_path
+           
+        if os.path.isdir(new_path) == False:
+            print('Creating directory %s' % new_path)
+            try:
+                os.mkdir(new_path)
+            except OSError as e:
+                print ("Creation of the directory " + new_path + " failed: " + e)
+                print ("Skipping decryption of files from directory %s" % new_path)
+                continue
 
-# 1026 bytes size file
-encrypt_file(key, 'C:/Home/crypt/original_test_files/file_1026.txt', 'C:/Home/crypt/encrypted_test_files')
-decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_1026.txt.crypt', 'C:/Home/crypt/decrypted_files')
+        for file in files:
+            file_path = dirpath + "/" + file
+            decrypt_file(key, file_path, new_path)
 
-# 5 MB size file
-encrypt_file(key, 'C:/Home/crypt/original_test_files/file_5MB.pdf', 'C:/Home/crypt/encrypted_test_files')
-decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_5MB.pdf.crypt', 'C:/Home/crypt/decrypted_files')
 
-# 50 MB size file
-encrypt_file(key, 'C:/Home/crypt/original_test_files/file_50MB.pdf', 'C:/Home/crypt/encrypted_test_files')
-decrypt_file(key, 'C:/Home/crypt/encrypted_test_files/file_50MB.pdf.crypt', 'C:/Home/crypt/decrypted_files')
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers(help='sub-command help', dest='command')
 
-print('Execution time: ' + str(time.time() - start_time) + " seconds")
+# create the parser for the "genkey" command
+parser_genkey = subparsers.add_parser('genkey', help='Generates a private key at the specified location')
+parser_genkey.add_argument("path", type=str, help='Path where the key will be stored')
+
+# create the parser for the "encrypt" command
+parser_encrypt = subparsers.add_parser('encrypt', help='Encrypts a single file, all the files from a tree based directory or the files from a root directory')
+parser_encrypt.add_argument("key_path", type=str, help='Path to the private key')
+parser_encrypt.add_argument("input_path", type=str, help='Path that points to the input root directory')
+parser_encrypt.add_argument("output_path", type=str, help='Path that points to the output root directory')
+
+# create the parser for the "decrypt" command
+parser_decrypt = subparsers.add_parser('decrypt', help='Decrypts a single file, all the files from a tree based directory or the files from a root directory')
+parser_encrypt.add_argument("key_path", type=str, help='Path to the private key')
+parser_decrypt.add_argument("input_path", type=str, help='Path that points to the input root directory')
+parser_decrypt.add_argument("output_path", type=str, help='Path that points to the output root directory')
+
+args = parser.parse_args(sys.argv[1:])
+args_dict = vars(args)
+
+if args_dict['command'] == 'genkey':
+    generate_and_save_key(args_dict['path'])
+elif args_dict['command'] == 'encrypt':
+    encrypt_dir_tree(args_dict['key_path'], args_dict['input_path'], args_dict['output_path'])
+elif args_dict['command'] == 'decrypt':
+    decrypt_dir_tree(args_dict['key_path'], args_dict['input_path'], args_dict['output_path'])

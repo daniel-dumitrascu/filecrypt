@@ -126,6 +126,10 @@ def encrypt_dir_tree(key_path: str, input_path: str, output_path: str):
     if key == None:
         return
 
+    if os.path.isfile(input_path):
+        encrypt_file(key, input_path, output_path)
+        return
+
     for dirpath, dirs, files in os.walk(input_path):
         relative_path = os.path.relpath(dirpath, input_path)
         new_path = output_path + "/" + relative_path
@@ -150,6 +154,10 @@ def decrypt_dir_tree(key_path: str, input_path: str, output_path: str):
 
     key = load_key(key_path)
     if key == None:
+        return
+
+    if os.path.isfile(input_path):
+        decrypt_file(key, input_path, output_path)
         return
 
     for dirpath, dirs, files in os.walk(input_path):

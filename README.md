@@ -2,8 +2,7 @@
 
 Encrypting and decrypting files in a tree based directory using symmetric cryptography.
 
-One important feature of the script is that it's able to encrypt/decrypt big files. This is possible because the file is not dirrectly encrypted as it is. 
-It's splitted into chunks of 1Mb which are then encrypted and concatenated to the resulting encrypted file. 
+One important feature of the script is that it's able to encrypt/decrypt big files. This is possible by splitted the file into chunks of 1Mb which are then encrypted and concatenated to the resulting encrypted file. 
 
 ## Getting Started
 

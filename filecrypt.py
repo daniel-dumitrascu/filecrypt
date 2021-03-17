@@ -185,7 +185,7 @@ parser_encrypt.add_argument("output_path", type=str, help='Path that points to t
 
 # create the parser for the "decrypt" command
 parser_decrypt = subparsers.add_parser('decrypt', help='Decrypts a single file, all the files from a tree based directory or the files from a root directory')
-parser_encrypt.add_argument("key_path", type=str, help='Path to the private key')
+parser_decrypt.add_argument("key_path", type=str, help='Path to the private key')
 parser_decrypt.add_argument("input_path", type=str, help='Path that points to the input root directory')
 parser_decrypt.add_argument("output_path", type=str, help='Path that points to the output root directory')
 

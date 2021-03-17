@@ -21,32 +21,33 @@ pip install cryptography
 ```
 ## Running the script
 
-Examples on how the script can be executed
+The script has 3 main actions:
+- key generation
+- encryption
+- decryption
 
-### Generating the key pair
+### Generating the key
 
-TODO - add the info
+```
+usage: filecrypt.py genkey [-h] path
+```
+path  Path where the key will be stored
 
 ### Encrypt 
 
-Examples on how we can encrypt
-
-#### Single file 
-
-TODO - add the info
-
-#### Multiple files from directory root 
-
-TODO - add the info
+```
+usage: filecrypt.py encrypt [-h] key_path input_path output_path key_path
+```
+key_path     Path to the private key
+input_path   Path that points to the input root directory
+output_path  Path that points to the output root directory
 
 ### Decrypt
 
-Examples on how we can decrypt the previous encrypted files
+```
+usage: filecrypt.py decrypt [-h] key_path input_path output_path
+```
 
-#### Single file 
-
-TODO - add the info
-
-#### Multiple files from directory root 
-
-TODO - add the info
+key_path     Path to the private key
+input_path   Path that points to the input root directory
+output_path  Path that points to the output root directory

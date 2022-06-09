@@ -1,33 +1,34 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"net"
+	"io/ioutil"
+	"log"
+	"net/http"
 )
 
-func main() {
-	PORT := ":1234"
-	l, err := net.Listen("tcp", PORT)
+func getStringFromReqBody(req *http.Request) string {
+	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
-	defer l.Close()
 
-	for {
-		c, err := l.Accept()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+	return string(body)
+}
 
-		netData, err := bufio.NewReader(c).ReadString('\n')
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+func handleEncryptAction(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("Encrypt action was triggered: " + getStringFromReqBody(req))
+}
 
-		fmt.Println("Message received -> ", string(netData))
-	}
+func handleDecryptAction(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("Decrypt action was triggered: " + getStringFromReqBody(req))
+}
+
+func main() {
+
+	http.HandleFunc("/encrypt", handleEncryptAction)
+	http.HandleFunc("/decrypt", handleDecryptAction)
+
+	PORT := "1234"
+	http.ListenAndServe(":"+PORT, nil)
 }

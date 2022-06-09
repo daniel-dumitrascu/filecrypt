@@ -20,6 +20,5 @@ func main() {
 	}
 
 	pathString := arguments[1]
-
 	fmt.Fprintf(c, pathString+"\n")
 }

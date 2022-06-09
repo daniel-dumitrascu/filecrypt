@@ -26,6 +26,13 @@ func handleDecryptAction(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 
+	/*if ok, msg := env.Setup(); !ok {
+		fmt.Println("There was an issue in setting up the env: " + msg)
+		return
+	}
+
+	server.Start()*/
+
 	http.HandleFunc("/encrypt", handleEncryptAction)
 	http.HandleFunc("/decrypt", handleDecryptAction)
 

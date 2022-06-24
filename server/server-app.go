@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"server_app/env"
 )
 
 func getStringFromReqBody(req *http.Request) string {
@@ -32,6 +33,8 @@ func main() {
 	}
 
 	server.Start()*/
+
+	env.Setup()
 
 	http.HandleFunc("/encrypt", handleEncryptAction)
 	http.HandleFunc("/decrypt", handleDecryptAction)

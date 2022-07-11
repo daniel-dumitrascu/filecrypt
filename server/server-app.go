@@ -25,6 +25,10 @@ func handleDecryptAction(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("Decrypt action was triggered: " + getStringFromReqBody(req))
 }
 
+func handleAddKeyAction(w http.ResponseWriter, req *http.Request) {
+	fmt.Println("Add key action was triggered: " + getStringFromReqBody(req))
+}
+
 func main() {
 
 	/*if ok, msg := env.Setup(); !ok {
@@ -38,6 +42,7 @@ func main() {
 
 	http.HandleFunc("/encrypt", handleEncryptAction)
 	http.HandleFunc("/decrypt", handleDecryptAction)
+	http.HandleFunc("/addkey", handleAddKeyAction)
 
 	PORT := "1234"
 	http.ListenAndServe(":"+PORT, nil)

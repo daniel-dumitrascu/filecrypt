@@ -55,6 +55,14 @@ func (sys *linux) GetContextAppPath() string {
 	return homePath + "/bin/context-app"
 }
 
+func (sys *linux) createAction(icon string, name string, ucaId string, command string, description string, patterns string) *Action {
+	action := Action{Icon: icon, Name: name,
+		Uniqueid: ucaId, Command: command,
+		Description: description, Patterns: patterns}
+	action.XMLName.Local = "action"
+	return &action
+}
+
 func (sys *linux) SpecificSetup() {
 	//Setup patch to uca.xml
 	homePath := sys.GetHomeDir()
@@ -80,14 +88,16 @@ func (sys *linux) SpecificSetup() {
 	if foundIdx == -1 {
 		//context-app entry was not found
 		//we will add it at the end of the uca.xml
+		command := sys.GetContextAppPath() + "crypt %f"
 		ucaId := strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
-		command := sys.GetContextAppPath() + " %f"
-		action := Action{Icon: "ark", Name: "Encrypt/Decrypt source",
-			Uniqueid: ucaId, Command: command,
-			Description: "Encrypt/Decrypt source", Patterns: "*"}
-		action.XMLName.Local = "action"
+		action := sys.createAction("ark", "Encrypt/Decrypt source", ucaId, command, "Encrypt/Decrypt source", "*")
+		actions.Actions = append(actions.Actions, *action)
 
-		actions.Actions = append(actions.Actions, action)
+		command = sys.GetContextAppPath() + "addkey %f"
+		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
+		action = sys.createAction("pgp-keys", "Add key", ucaId, command, "Add the key that will be used to encrypt and decrypt", "*")
+		actions.Actions = append(actions.Actions, *action)
+
 		updatedUcaBytes, err := xml.MarshalIndent(actions, " ", "	")
 		if err != nil {
 			log.Fatalln("Error when marshaling uca.xml: " + err.Error())

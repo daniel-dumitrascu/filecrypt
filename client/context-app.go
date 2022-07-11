@@ -12,14 +12,24 @@ import (
 
 func main() {
 	arguments := os.Args
-	if len(arguments) == 1 {
-		fmt.Println("Exiting - path argument wasn't provided")
+	if len(arguments) < 3 {
+		fmt.Println("Exiting - action and path argument weren't provided")
 		return
 	}
 
-	postBody, _ := json.Marshal(string(arguments[1]))
+	action := arguments[1]
+	var endpoint string
+	if action == "crypt" {
+		endpoint = "encrypt"
+	} else if action == "addkey" {
+		endpoint = "addkey"
+	} else {
+		log.Fatalf("Context-app has been called without a valid action")
+	}
+
+	postBody, _ := json.Marshal(string(arguments[2]))
 	responseBody := bytes.NewBuffer(postBody)
-	resp, err := http.Post("http://127.0.0.1:1234/encrypt", "application/json", responseBody)
+	resp, err := http.Post("http://127.0.0.1:1234/"+endpoint, "application/json", responseBody)
 
 	//Handle Error
 	if err != nil {

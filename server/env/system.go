@@ -4,4 +4,5 @@ type system interface {
 	GetHomeDir() string
 	GetContextAppPath() string
 	SpecificSetup()
+	GetInstallKeyPath() string
 }

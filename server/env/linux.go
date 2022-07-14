@@ -115,6 +115,23 @@ func (sys *linux) SpecificSetup() {
 		ucaFile.Write(updatedUcaBytes)
 		ucaFile.Close()
 	}
+
+	// Create directory in /etc/context-app where the key is going to be stored
+	if _, err := os.Stat(homePath + "/etc"); os.IsNotExist(err) {
+		if createDirErr := os.Mkdir(homePath+"/etc", os.ModePerm); createDirErr != nil {
+			log.Fatalln("Cannot create directory in /etc in home", createDirErr)
+		}
+	}
+	if _, err := os.Stat(homePath + "/etc/context-app"); os.IsNotExist(err) {
+		if createDirErr := os.Mkdir(homePath+"/etc/context-app", os.ModePerm); createDirErr != nil {
+			log.Fatalln("Cannot create directory in /etc in home", createDirErr)
+		}
+	}
+
+}
+
+func (sys *linux) GetInstallKeyPath() string {
+	return sys.GetHomeDir() + "/etc/context-app/"
 }
 
 func GetOsManager() system {

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"server_app/env"
+	"strings"
 )
 
 func getStringFromReqBody(req *http.Request) string {
@@ -26,7 +27,10 @@ func handleDecryptAction(w http.ResponseWriter, req *http.Request) {
 }
 
 func handleAddKeyAction(w http.ResponseWriter, req *http.Request) {
-	fmt.Println("Add key action was triggered: " + getStringFromReqBody(req))
+	var keyPath string = getStringFromReqBody(req)
+	keyPath = strings.Replace(keyPath, "\"", "", -1)
+	fmt.Println("Add key action was triggered: " + keyPath)
+	env.InstallKey(&keyPath)
 }
 
 func main() {

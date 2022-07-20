@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"server_app/keymgn"
 	"strings"
 )
@@ -27,13 +29,27 @@ func Setup(data *EnvData) {
 	data.loadedKey = keymgn.LoadKey(&installKeyPath)
 
 	var handleEncryptAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
-		fmt.Println("Encrypt action was triggered: " + getStringFromReqBody(req))
-		fmt.Println("Loaded key: " + data.loadedKey)
+		var filePath string = getStringFromReqBody(req)
+		filePath = strings.Replace(filePath, "\"", "", -1)
+		fmt.Println("Encrypt action was triggered: " + filePath)
+		if len(data.loadedKey) > 0 {
+			fmt.Println("Loaded key: " + data.loadedKey)
+			RunEncrypt(&filePath, &data.loadedKey)
+		} else {
+			fmt.Println("Cannot encrypt because no key has been found")
+		}
 	}
 
 	var handleDecryptAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
+		var filePath string = getStringFromReqBody(req)
+		filePath = strings.Replace(filePath, "\"", "", -1)
 		fmt.Println("Decrypt action was triggered: " + getStringFromReqBody(req))
-		fmt.Println("Loaded key: " + data.loadedKey)
+		if len(data.loadedKey) > 0 {
+			fmt.Println("Loaded key: " + data.loadedKey)
+			RunDecrypt(&filePath, &data.loadedKey)
+		} else {
+			fmt.Println("Cannot decrypt because no key has been found")
+		}
 	}
 
 	var handleAddKeyAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
@@ -55,6 +71,27 @@ func Setup(data *EnvData) {
 func Run() {
 	PORT := "1234"
 	http.ListenAndServe(":"+PORT, nil)
+}
+
+func RunEncrypt(toEncryptPath *string, loadedKey *string) {
+	osmanager := GetOsManager()
+	scriptPath := osmanager.GetContextAppPath() + "/filecrypt.py"
+
+	rootPath := GetRootDir(toEncryptPath)
+
+	c := exec.Command(scriptPath, "encrypt", *loadedKey, *toEncryptPath, rootPath)
+
+	if err := c.Run(); err != nil {
+		fmt.Println("Error when encrypting: ", err)
+	}
+}
+
+func RunDecrypt(filePath *string, loadedKey *string) {
+
+}
+
+func GetRootDir(toEncryptPath *string) string {
+	return filepath.Dir(*toEncryptPath) //TODO this may not work on encoding a directory
 }
 
 func GetInstallKeyPath() string {

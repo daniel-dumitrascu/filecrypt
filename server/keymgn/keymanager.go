@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func LoadKey(installDir *string) {
+func LoadKey(installDir *string) string {
 	// Take the key that has the right name format --> install_key_[timestamp]
 	// having the latest timestamp
 	var keyMatches []string
@@ -32,7 +32,12 @@ func LoadKey(installDir *string) {
 
 	if err := filepath.Walk(*installDir, walkFunc); err != nil {
 		fmt.Printf("Error when trying to load the key: %s", err)
-		return
+		return ""
+	}
+
+	if len(keyMatches) == 0 {
+		fmt.Printf("There is no key found to load")
+		return ""
 	}
 
 	sort.Slice(keyMatches, func(i int, j int) bool {
@@ -45,23 +50,21 @@ func LoadKey(installDir *string) {
 		return a < b
 	})
 
-	//TODO to delete
-	fmt.Println("")
-	//TODO somehow store the newest key
+	return keyMatches[0]
 }
 
-func InstallKey(inputKeyPath *string, outputKeyPath *string) {
+func InstallKey(inputKeyPath *string, outputKeyPath *string) string {
 	inputFile, err := os.Open(*inputKeyPath)
 	if err != nil {
 		fmt.Printf("Cannot install key. Key path is not valid: %s", err)
-		return
+		return ""
 	}
 
 	outputFile, err := os.Create(*outputKeyPath)
 	if err != nil {
 		inputFile.Close()
 		fmt.Printf("Couldn't open dest file: %s", err)
-		return
+		return ""
 	}
 	defer outputFile.Close()
 
@@ -70,10 +73,10 @@ func InstallKey(inputKeyPath *string, outputKeyPath *string) {
 	if err != nil {
 		fmt.Printf("Writing to output file failed: %s", err)
 		os.Remove(*outputKeyPath)
-		return
+		return ""
 	}
 
-	//TODO somehow store the key as the newest one
+	return *outputKeyPath
 }
 
 func GenerateKeyName() string {

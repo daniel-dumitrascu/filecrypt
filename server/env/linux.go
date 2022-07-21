@@ -52,7 +52,7 @@ func (sys *linux) GetHomeDir() string {
 
 func (sys *linux) GetContextAppPath() string {
 	homePath := sys.GetHomeDir()
-	return homePath + "/bin/context-app"
+	return homePath + "/bin/context_app/"
 }
 
 func (sys *linux) createAction(icon string, name string, ucaId string, command string, description string, patterns string) *Action {
@@ -88,12 +88,12 @@ func (sys *linux) SpecificSetup() {
 	if foundIdx == -1 {
 		//context-app entry was not found
 		//we will add it at the end of the uca.xml
-		command := sys.GetContextAppPath() + "crypt %f"
+		command := sys.GetContextAppPath() + "context-app" + " crypt %f"
 		ucaId := strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action := sys.createAction("ark", "Encrypt/Decrypt source", ucaId, command, "Encrypt/Decrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
-		command = sys.GetContextAppPath() + "addkey %f"
+		command = sys.GetContextAppPath() + "context-app" + " addkey %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action = sys.createAction("pgp-keys", "Add key", ucaId, command, "Add the key that will be used to encrypt and decrypt", "*")
 		actions.Actions = append(actions.Actions, *action)
@@ -124,7 +124,7 @@ func (sys *linux) SpecificSetup() {
 	}
 	if _, err := os.Stat(homePath + "/etc/context-app"); os.IsNotExist(err) {
 		if createDirErr := os.Mkdir(homePath+"/etc/context-app", os.ModePerm); createDirErr != nil {
-			log.Fatalln("Cannot create directory in /etc in home", createDirErr)
+			log.Fatalln("Cannot create directory in /etc/context-app in home", createDirErr)
 		}
 	}
 

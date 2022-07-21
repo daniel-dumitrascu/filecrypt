@@ -8,7 +8,21 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
+
+func computeAction(targetPath *string) string {
+	start := strings.LastIndex(*targetPath, ".")
+
+	if start != -1 {
+		extension := (*targetPath)[start+1:]
+		if extension == "crypt" {
+			return "decrypt"
+		}
+	}
+
+	return "encrypt"
+}
 
 func main() {
 	arguments := os.Args
@@ -18,16 +32,18 @@ func main() {
 	}
 
 	action := arguments[1]
+	targetPath := string(arguments[2])
+
 	var endpoint string
 	if action == "crypt" {
-		endpoint = "encrypt"
+		endpoint = computeAction(&targetPath)
 	} else if action == "addkey" {
 		endpoint = "addkey"
 	} else {
 		log.Fatalf("Context-app has been called without a valid action")
 	}
 
-	postBody, _ := json.Marshal(string(arguments[2]))
+	postBody, _ := json.Marshal(targetPath)
 	responseBody := bytes.NewBuffer(postBody)
 	resp, err := http.Post("http://127.0.0.1:1234/"+endpoint, "application/json", responseBody)
 

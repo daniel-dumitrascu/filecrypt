@@ -22,7 +22,7 @@ func LoadKey(installDir *string) string {
 		if info.IsDir() {
 			return nil
 		}
-		if matched, err := filepath.Match("*/install_key_[*]", filepath.Base(path)); err != nil {
+		if matched, err := filepath.Match("install_key_*", filepath.Base(path)); err != nil {
 			return err
 		} else if matched {
 			keyMatches = append(keyMatches, path)
@@ -41,15 +41,16 @@ func LoadKey(installDir *string) string {
 	}
 
 	sort.Slice(keyMatches, func(i int, j int) bool {
-		strTimestamp_a := keyMatches[i][strings.Index(keyMatches[i], "[")+1 : len(keyMatches[i])-2]
-		strTimestamp_b := keyMatches[j][strings.Index(keyMatches[j], "[")+1 : len(keyMatches[j])-2]
+		strTimestamp_a := keyMatches[i][strings.LastIndex(keyMatches[i], "_")+1 : len(keyMatches[i])]
+		strTimestamp_b := keyMatches[j][strings.LastIndex(keyMatches[j], "_")+1 : len(keyMatches[j])]
 
 		a, _ := strconv.ParseInt(strTimestamp_a, 10, 64)
 		b, _ := strconv.ParseInt(strTimestamp_b, 10, 64)
 
-		return a < b
+		return a > b
 	})
 
+	fmt.Println("Loaded key: " + keyMatches[0])
 	return keyMatches[0]
 }
 
@@ -76,6 +77,7 @@ func InstallKey(inputKeyPath *string, outputKeyPath *string) string {
 		return ""
 	}
 
+	fmt.Println("The new installed new has been loaded: " + *outputKeyPath)
 	return *outputKeyPath
 }
 

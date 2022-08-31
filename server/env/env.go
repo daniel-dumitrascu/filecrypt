@@ -29,24 +29,38 @@ func Setup(data *EnvData) {
 	data.loadedKey = keymgn.LoadKey(&installKeyPath)
 
 	var handleEncryptAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
-		var filePath string = getStringFromReqBody(req)
-		filePath = strings.Replace(filePath, "\"", "", -1)
-		fmt.Println("Encrypt action was triggered: " + filePath)
+		inputPath := getStringFromReqBody(req)
+		inputPath = strings.Replace(inputPath, "\"", "", -1)
+		fmt.Println("Encrypt action was triggered for: " + inputPath)
+
+		outputPath, computeErr := ComputeOutputPath(&inputPath)
+		if computeErr != nil {
+			fmt.Println(computeErr)
+			return
+		}
+
 		if len(data.loadedKey) > 0 {
 			fmt.Println("Loaded key: " + data.loadedKey)
-			CallScript(&filePath, &data.loadedKey, "encrypt")
+			CallScript(&inputPath, &outputPath, &data.loadedKey, "encrypt")
 		} else {
 			fmt.Println("Cannot encrypt because no key has been found")
 		}
 	}
 
 	var handleDecryptAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
-		var filePath string = getStringFromReqBody(req)
-		filePath = strings.Replace(filePath, "\"", "", -1)
-		fmt.Println("Decrypt action was triggered: " + getStringFromReqBody(req))
+		var inputPath string = getStringFromReqBody(req)
+		inputPath = strings.Replace(inputPath, "\"", "", -1)
+		fmt.Println("Decrypt action was triggered for: " + getStringFromReqBody(req))
+
+		outputPath, computeErr := ComputeOutputPath(&inputPath)
+		if computeErr != nil {
+			fmt.Println(computeErr)
+			return
+		}
+
 		if len(data.loadedKey) > 0 {
 			fmt.Println("Loaded key: " + data.loadedKey)
-			CallScript(&filePath, &data.loadedKey, "decrypt")
+			CallScript(&inputPath, &outputPath, &data.loadedKey, "decrypt")
 		} else {
 			fmt.Println("Cannot decrypt because no key has been found")
 		}
@@ -73,7 +87,7 @@ func Run() {
 	http.ListenAndServe(":"+PORT, nil)
 }
 
-func CallScript(targetPath *string, loadedKey *string, action string) {
+func CallScript(inputPath *string, outputPath *string, loadedKey *string, action string) {
 	osmanager := GetOsManager()
 	scriptPath := osmanager.GetContextAppPath() + "filecrypt.py"
 
@@ -81,9 +95,7 @@ func CallScript(targetPath *string, loadedKey *string, action string) {
 	//and, not here but at the loading time of the server app
 	interpretor := "/usr/bin/python3"
 
-	rootPath := GetRootDir(targetPath)
-
-	c := exec.Command(interpretor, scriptPath, action, *loadedKey, *targetPath, rootPath)
+	c := exec.Command(interpretor, scriptPath, action, *loadedKey, *inputPath, *outputPath)
 
 	if out, err := c.Output(); err != nil {
 		fmt.Println("Error when encrypting: ", err)
@@ -91,8 +103,23 @@ func CallScript(targetPath *string, loadedKey *string, action string) {
 	}
 }
 
-func GetRootDir(toEncryptPath *string) string {
-	return filepath.Dir(*toEncryptPath) //TODO this may not work on encoding a directory
+func ComputeOutputPath(inputPath *string) (string, error) {
+	inputInfo, err := os.Stat(*inputPath)
+	if err != nil {
+		return "", errors.New("Cannot get the stats of path: " + *inputPath)
+	}
+
+	var outputPath string = filepath.Dir(*inputPath)
+
+	if inputInfo.IsDir() {
+		filename := filepath.Base(*inputPath)
+		outputPath = outputPath + "/" + filename + "_result"
+		if createDirErr := os.Mkdir(outputPath, os.ModePerm); createDirErr != nil {
+			return "", errors.New("Cannot create directory in: " + outputPath)
+		}
+	}
+
+	return outputPath, nil
 }
 
 func GetInstallKeyPath() string {

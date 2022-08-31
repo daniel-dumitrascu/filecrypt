@@ -86,11 +86,16 @@ func (sys *linux) SpecificSetup() {
 
 	foundIdx := slices.IndexFunc(actions.Actions, func(action Action) bool { return strings.Contains(action.Command, "context-app") })
 	if foundIdx == -1 {
-		//context-app entry was not found
-		//we will add it at the end of the uca.xml
-		command := sys.GetContextAppPath() + "context-app" + " crypt %f"
+		// Context-app entry was not found, we will add it at the end of the uca.xml
+
+		command := sys.GetContextAppPath() + "context-app" + " encrypt %f"
 		ucaId := strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
-		action := sys.createAction("ark", "Encrypt/Decrypt source", ucaId, command, "Encrypt/Decrypt source", "*")
+		action := sys.createAction("ark", "Encrypt source", ucaId, command, "Encrypt source", "*")
+		actions.Actions = append(actions.Actions, *action)
+
+		command = sys.GetContextAppPath() + "context-app" + " decrypt %f"
+		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
+		action = sys.createAction("ark", "Decrypt source", ucaId, command, "Decrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
 		command = sys.GetContextAppPath() + "context-app" + " addkey %f"

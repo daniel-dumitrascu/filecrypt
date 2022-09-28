@@ -39,22 +39,6 @@ type Actions struct {
 	Actions []Action `xml:"action"`
 }
 
-func (sys *linux) GetHomeDir() string {
-	homePath, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if len(homePath) < 1 {
-		log.Fatalln("The user home directory path is not valid: " + string(homePath))
-	}
-	return homePath
-}
-
-func (sys *linux) GetContextAppPath() string {
-	homePath := sys.GetHomeDir()
-	return homePath + "/bin/context_app/"
-}
-
 func (sys *linux) createAction(icon string, name string, ucaId string, command string, description string, patterns string) *Action {
 	action := Action{Icon: icon, Name: name,
 		Uniqueid: ucaId, Command: command,
@@ -65,7 +49,7 @@ func (sys *linux) createAction(icon string, name string, ucaId string, command s
 
 func (sys *linux) SpecificSetup() {
 	//Setup patch to uca.xml
-	homePath := sys.GetHomeDir()
+	homePath := GetHomeDir()
 	ucaDirPath := homePath + "/.config/Thunar/uca.xml"
 
 	ucaFile, err := os.Open(ucaDirPath)
@@ -136,7 +120,7 @@ func (sys *linux) SpecificSetup() {
 }
 
 func (sys *linux) GetInstallKeyPath() string {
-	return sys.GetHomeDir() + "/etc/context-app/"
+	return GetHomeDir() + "/etc/context-app/"
 }
 
 func GetOsManager() system {

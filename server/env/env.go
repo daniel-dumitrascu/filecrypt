@@ -18,12 +18,12 @@ type EnvData struct {
 }
 
 func Setup(data *EnvData) {
-	osmanager := GetOsManager()
-
-	if _, err := os.Stat(osmanager.GetContextAppPath()); errors.Is(err, os.ErrNotExist) {
+	//TODO trebuie decomentat
+	/*if _, err := os.Stat(GetContextAppPath()); errors.Is(err, os.ErrNotExist) {
 		log.Fatalln("Context app is not installed.")
-	}
+	}*/
 
+	osmanager := GetOsManager()
 	osmanager.SpecificSetup()
 	var installKeyPath = osmanager.GetInstallKeyPath()
 	data.loadedKey = keymgn.LoadKey(&installKeyPath)
@@ -88,8 +88,7 @@ func Run() {
 }
 
 func CallScript(inputPath *string, outputPath *string, loadedKey *string, action string) {
-	osmanager := GetOsManager()
-	scriptPath := osmanager.GetContextAppPath() + "filecrypt.py"
+	scriptPath := GetContextAppPath() + "filecrypt.py"
 
 	//TODO this should be taken automatically from the system
 	//and, not here but at the loading time of the server app

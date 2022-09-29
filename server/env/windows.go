@@ -4,6 +4,7 @@ package env
 
 import (
 	"log"
+	"syscall"
 
 	"golang.org/x/sys/windows/registry"
 )
@@ -11,27 +12,38 @@ import (
 type windows struct {
 }
 
-func (sys *windows) GetInstallKeyPath() string {
-	//TODO
-	return ""
+func (sys *windows) SpecificSetup() {
+	keyEncryptName := "FilecryptEncrypt"
+	keyDecryptName := "FilecryptDecrypt"
+	keyAddKey := "FilecryptAddKey"
+	execAppPath := GetContextAppPath() + "\\context_app.exe"
+
+	if !IsKeyPresent(keyEncryptName) {
+		CreateContextEntry(keyEncryptName, "Encrypt source", execAppPath, "encrypt")
+	}
+
+	if !IsKeyPresent(keyDecryptName) {
+		CreateContextEntry(keyDecryptName, "Decrypt source", execAppPath, "decrypt")
+	}
+
+	if !IsKeyPresent(keyAddKey) {
+		CreateContextEntry(keyAddKey, "Add key", execAppPath, "addkey")
+	}
 }
 
-func (sys *windows) SpecificSetup() {
-	//TODO
-	/*k, err := registry.OpenKey(registry.CLASSES_ROOT, "*\\shell\\blabla\\command", registry.QUERY_VALUE)
-	if err != nil {
+func IsKeyPresent(keyName string) bool {
+	keyPath := "*\\shell\\"
+	_, err := registry.OpenKey(registry.CLASSES_ROOT, keyPath+keyName, registry.QUERY_VALUE)
+	if err == syscall.ERROR_FILE_NOT_FOUND {
+		return false
+	} else if err != nil {
 		log.Fatal(err)
 	}
-	defer k.Close()
 
-	v, _, _ := k.GetStringValue("")
-	fmt.Println("Value from registry: " + v)*/
-
-	CreateContextEntry("FilecryptEncrypt", "Encrypt source", "C:\\Program Files (x86)\\Notepad++\\notepad++.exe")
-	CreateContextEntry("FilecryptDecrypt", "Decrypt source", "C:\\Program Files (x86)\\Notepad++\\notepad++.exe")
+	return true
 }
 
-func CreateContextEntry(contextName string, contextDesc string, appToExec string) {
+func CreateContextEntry(contextName string, contextDesc string, appToExec string, action string) {
 	keyPath := "*\\shell\\"
 
 	encryptKeyHandler, _, err := registry.CreateKey(registry.CLASSES_ROOT, keyPath+"\\"+contextName,
@@ -54,10 +66,14 @@ func CreateContextEntry(contextName string, contextDesc string, appToExec string
 	}
 	defer encryptSubKeyHandler.Close()
 
-	err = encryptSubKeyHandler.SetStringValue("", "\""+appToExec+"\" \"%1\"")
+	err = encryptSubKeyHandler.SetStringValue("", "\""+appToExec+"\""+" \""+action+"\" "+"\"%1\"")
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (sys *windows) GetInstallKeyPath() string {
+	return GetHomeDir() + "\\etc\\context-app\\"
 }
 
 func GetOsManager() system {

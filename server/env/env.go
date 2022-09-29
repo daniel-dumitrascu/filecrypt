@@ -3,7 +3,7 @@ package env
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -18,10 +18,9 @@ type EnvData struct {
 }
 
 func Setup(data *EnvData) {
-	//TODO trebuie decomentat
-	/*if _, err := os.Stat(GetContextAppPath()); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(GetContextAppPath()); errors.Is(err, os.ErrNotExist) {
 		log.Fatalln("Context app is not installed.")
-	}*/
+	}
 
 	osmanager := GetOsManager()
 	osmanager.SpecificSetup()
@@ -88,11 +87,12 @@ func Run() {
 }
 
 func CallScript(inputPath *string, outputPath *string, loadedKey *string, action string) {
-	scriptPath := GetContextAppPath() + "filecrypt.py"
+	scriptPath := filepath.Join(GetContextAppPath(), "filecrypt.py")
 
 	//TODO this should be taken automatically from the system
 	//and, not here but at the loading time of the server app
-	interpretor := "/usr/bin/python3"
+	//interpretor := "/usr/bin/python3"
+	interpretor := "python"
 
 	c := exec.Command(interpretor, scriptPath, action, *loadedKey, *inputPath, *outputPath)
 
@@ -127,7 +127,7 @@ func GetInstallKeyPath() string {
 }
 
 func getStringFromReqBody(req *http.Request) string {
-	body, err := ioutil.ReadAll(req.Body)
+	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		log.Fatalln(err)
 	}

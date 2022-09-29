@@ -3,6 +3,7 @@ package env
 import (
 	"log"
 	"os"
+	"path/filepath"
 )
 
 type system interface {
@@ -23,5 +24,5 @@ func GetHomeDir() string {
 
 func GetContextAppPath() string {
 	homePath := GetHomeDir()
-	return homePath + "/bin/context_app/"
+	return filepath.Join(homePath, "/bin/context_app/")
 }

@@ -111,16 +111,29 @@ func (sys *linux) SpecificSetup() {
 			log.Fatalln("Cannot create directory in /etc in home", createDirErr)
 		}
 	}
-	if _, err := os.Stat(homePath + "/etc/context-app"); os.IsNotExist(err) {
+	if _, err := os.Stat(GetInstallKeyPath()); os.IsNotExist(err) {
 		if createDirErr := os.Mkdir(homePath+"/etc/context-app", os.ModePerm); createDirErr != nil {
 			log.Fatalln("Cannot create directory in /etc/context-app in home", createDirErr)
 		}
 	}
-
 }
 
 func (sys *linux) GetInstallKeyPath() string {
 	return GetHomeDir() + "/etc/context-app/"
+}
+
+func (sys *linux) GetInterpretor() string {
+	//Find the path to the python exec
+	cmd := exec.Command("which", "python")
+	output, err := cmd.Output()
+
+	if err != nil {
+		log.Fatal("Python not found on the system", err)
+	}
+
+	interpretor := strings.Replace(string(output), "\n", "", -1)
+	interpretor = strings.Replace(interpretor, "\r", "", -1)
+	return interpretor
 }
 
 func GetOsManager() system {

@@ -4,6 +4,9 @@ package env
 
 import (
 	"log"
+	"os"
+	"os/exec"
+	"strings"
 	"syscall"
 
 	"golang.org/x/sys/windows/registry"
@@ -28,6 +31,18 @@ func (sys *windows) SpecificSetup() {
 
 	if !IsKeyPresent(keyAddKey) {
 		CreateContextEntry(keyAddKey, "Add key", execAppPath, "addkey")
+	}
+
+	// Create directory in /etc/context-app where the key is going to be stored
+	if _, err := os.Stat(GetHomeDir() + "\\etc"); os.IsNotExist(err) {
+		if createDirErr := os.Mkdir(GetHomeDir()+"\\etc", os.ModePerm); createDirErr != nil {
+			log.Fatalln("Cannot create directory in \"etc\" in home", createDirErr)
+		}
+	}
+	if _, err := os.Stat(GetInstallKeyPath()); os.IsNotExist(err) {
+		if createDirErr := os.Mkdir(GetHomeDir()+"\\etc\\context-app", os.ModePerm); createDirErr != nil {
+			log.Fatalln("Cannot create directory in \"\\etc\\context-app\" in home", createDirErr)
+		}
 	}
 }
 
@@ -74,6 +89,20 @@ func CreateContextEntry(contextName string, contextDesc string, appToExec string
 
 func (sys *windows) GetInstallKeyPath() string {
 	return GetHomeDir() + "\\etc\\context-app\\"
+}
+
+func (sys *windows) GetInterpretor() string {
+	//Find the path to the python exec
+	cmd := exec.Command("where", "python")
+	output, err := cmd.Output()
+
+	if err != nil {
+		log.Fatal("Python not found on the system", err)
+	}
+
+	interpretor := strings.Replace(string(output), "\n", "", -1)
+	interpretor = strings.Replace(interpretor, "\r", "", -1)
+	return interpretor
 }
 
 func GetOsManager() system {

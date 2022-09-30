@@ -9,6 +9,7 @@ import (
 type system interface {
 	SpecificSetup()
 	GetInstallKeyPath() string
+	GetInterpretor() string
 }
 
 func GetHomeDir() string {

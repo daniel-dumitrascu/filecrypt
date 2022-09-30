@@ -14,7 +14,8 @@ import (
 )
 
 type EnvData struct {
-	loadedKey string
+	loadedKey   string
+	interpretor string
 }
 
 func Setup(data *EnvData) {
@@ -26,6 +27,7 @@ func Setup(data *EnvData) {
 	osmanager.SpecificSetup()
 	var installKeyPath = osmanager.GetInstallKeyPath()
 	data.loadedKey = keymgn.LoadKey(&installKeyPath)
+	data.interpretor = osmanager.GetInterpretor()
 
 	var handleEncryptAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
 		inputPath := getStringFromReqBody(req)
@@ -40,7 +42,7 @@ func Setup(data *EnvData) {
 
 		if len(data.loadedKey) > 0 {
 			fmt.Println("Loaded key: " + data.loadedKey)
-			CallScript(&inputPath, &outputPath, &data.loadedKey, "encrypt")
+			CallScript(&data.interpretor, &inputPath, &outputPath, &data.loadedKey, "encrypt")
 		} else {
 			fmt.Println("Cannot encrypt because no key has been found")
 		}
@@ -59,7 +61,7 @@ func Setup(data *EnvData) {
 
 		if len(data.loadedKey) > 0 {
 			fmt.Println("Loaded key: " + data.loadedKey)
-			CallScript(&inputPath, &outputPath, &data.loadedKey, "decrypt")
+			CallScript(&data.interpretor, &inputPath, &outputPath, &data.loadedKey, "decrypt")
 		} else {
 			fmt.Println("Cannot decrypt because no key has been found")
 		}
@@ -86,15 +88,9 @@ func Run() {
 	http.ListenAndServe(":"+PORT, nil)
 }
 
-func CallScript(inputPath *string, outputPath *string, loadedKey *string, action string) {
+func CallScript(pythonExecPath *string, inputPath *string, outputPath *string, loadedKey *string, action string) {
 	scriptPath := filepath.Join(GetContextAppPath(), "filecrypt.py")
-
-	//TODO this should be taken automatically from the system
-	//and, not here but at the loading time of the server app
-	//interpretor := "/usr/bin/python3"
-	interpretor := "python"
-
-	c := exec.Command(interpretor, scriptPath, action, *loadedKey, *inputPath, *outputPath)
+	c := exec.Command(*pythonExecPath, scriptPath, action, *loadedKey, *inputPath, *outputPath)
 
 	if out, err := c.Output(); err != nil {
 		fmt.Println("Error when encrypting: ", err)

@@ -20,17 +20,33 @@ func (sys *windows) SpecificSetup() {
 	keyDecryptName := "FilecryptDecrypt"
 	keyAddKey := "FilecryptAddKey"
 	execAppPath := GetContextAppPath() + "\\context_app.exe"
+	fileKeysPath := "*\\shell\\"
+	dirKeysPath := "Folder\\shell\\"
 
-	if !IsKeyPresent(keyEncryptName) {
-		CreateContextEntry(keyEncryptName, "Encrypt source", execAppPath, "encrypt")
+	// Action keys for handling files
+	if !IsKeyPresent(keyEncryptName, fileKeysPath) {
+		CreateContextEntry(fileKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt")
 	}
 
-	if !IsKeyPresent(keyDecryptName) {
-		CreateContextEntry(keyDecryptName, "Decrypt source", execAppPath, "decrypt")
+	if !IsKeyPresent(keyDecryptName, fileKeysPath) {
+		CreateContextEntry(fileKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt")
 	}
 
-	if !IsKeyPresent(keyAddKey) {
-		CreateContextEntry(keyAddKey, "Add key", execAppPath, "addkey")
+	if !IsKeyPresent(keyAddKey, fileKeysPath) {
+		CreateContextEntry(fileKeysPath, keyAddKey, "Add key", execAppPath, "addkey")
+	}
+
+	// Action keys for handling directories
+	if !IsKeyPresent(keyEncryptName, dirKeysPath) {
+		CreateContextEntry(dirKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt")
+	}
+
+	if !IsKeyPresent(keyDecryptName, dirKeysPath) {
+		CreateContextEntry(dirKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt")
+	}
+
+	if !IsKeyPresent(keyAddKey, dirKeysPath) {
+		CreateContextEntry(dirKeysPath, keyAddKey, "Add key", execAppPath, "addkey")
 	}
 
 	// Create directory in /etc/context-app where the key is going to be stored
@@ -46,9 +62,8 @@ func (sys *windows) SpecificSetup() {
 	}
 }
 
-func IsKeyPresent(keyName string) bool {
-	keyPath := "*\\shell\\"
-	_, err := registry.OpenKey(registry.CLASSES_ROOT, keyPath+keyName, registry.QUERY_VALUE)
+func IsKeyPresent(keyName string, path string) bool {
+	_, err := registry.OpenKey(registry.CLASSES_ROOT, path+keyName, registry.QUERY_VALUE)
 	if err == syscall.ERROR_FILE_NOT_FOUND {
 		return false
 	} else if err != nil {
@@ -58,10 +73,8 @@ func IsKeyPresent(keyName string) bool {
 	return true
 }
 
-func CreateContextEntry(contextName string, contextDesc string, appToExec string, action string) {
-	keyPath := "*\\shell\\"
-
-	encryptKeyHandler, _, err := registry.CreateKey(registry.CLASSES_ROOT, keyPath+"\\"+contextName,
+func CreateContextEntry(path string, contextName string, contextDesc string, appToExec string, action string) {
+	encryptKeyHandler, _, err := registry.CreateKey(registry.CLASSES_ROOT, path+contextName,
 		registry.SET_VALUE|registry.CREATE_SUB_KEY)
 	if err != nil {
 		log.Fatal(err)
@@ -74,7 +87,7 @@ func CreateContextEntry(contextName string, contextDesc string, appToExec string
 	}
 
 	// Create command sub-key
-	encryptSubKeyHandler, _, err := registry.CreateKey(registry.CLASSES_ROOT, keyPath+"\\"+contextName+"\\command",
+	encryptSubKeyHandler, _, err := registry.CreateKey(registry.CLASSES_ROOT, path+contextName+"\\command",
 		registry.SET_VALUE|registry.CREATE_SUB_KEY)
 	if err != nil {
 		log.Fatal(err)

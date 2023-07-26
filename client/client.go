@@ -26,7 +26,7 @@ func main() {
 
 	postBody, _ := json.Marshal(targetPath)
 	responseBody := bytes.NewBuffer(postBody)
-	resp, err := http.Post("http://127.0.0.1:1234/"+action, "application/json", responseBody)
+	resp, err := http.Post(home_address+":"+home_port+action, media_type, responseBody)
 
 	//Handle Error
 	if err != nil {

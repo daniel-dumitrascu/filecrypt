@@ -8,7 +8,6 @@ import (
 
 type system interface {
 	SpecificSetup()
-	GetInstallKeyPath() string
 	GetInterpretor() string
 }
 
@@ -23,7 +22,17 @@ func GetHomeDir() string {
 	return homePath
 }
 
-func GetContextAppPath() string {
+func GetAppDirPath() string {
 	homePath := GetHomeDir()
-	return filepath.Join(homePath, "/bin/context_app/")
+	return filepath.Join(homePath, "/"+app_generic_name)
+}
+
+func GetBinDirPath() string {
+	homePath := GetHomeDir()
+	return filepath.Join(homePath, "/"+app_generic_name+"/"+app_bin_dir)
+}
+
+func GetKeysDirPath() string {
+	homePath := GetHomeDir()
+	return filepath.Join(homePath, "/"+app_generic_name+"/"+app_keys_dir)
 }

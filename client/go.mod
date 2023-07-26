@@ -1,3 +1,3 @@
-module context_app
+module client
 
 go 1.18

@@ -68,21 +68,21 @@ func (sys *linux) SpecificSetup() {
 
 	ucaFile.Close()
 
-	foundIdx := slices.IndexFunc(actions.Actions, func(action Action) bool { return strings.Contains(action.Command, "context-app") })
+	foundIdx := slices.IndexFunc(actions.Actions, func(action Action) bool { return strings.Contains(action.Command, app_client_name) })
 	if foundIdx == -1 {
-		// Context-app entry was not found, we will add it at the end of the uca.xml
+		// Client app entry was not found, we will add it at the end of the uca.xml
 
-		command := sys.GetContextAppPath() + "context-app" + " encrypt %f"
+		command := sys.GetBinDirPath() + app_client_name + " encrypt %f"
 		ucaId := strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action := sys.createAction("ark", "Encrypt source", ucaId, command, "Encrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
-		command = sys.GetContextAppPath() + "context-app" + " decrypt %f"
+		command = sys.GetBinDirPath() + app_client_name + " decrypt %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action = sys.createAction("ark", "Decrypt source", ucaId, command, "Decrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
-		command = sys.GetContextAppPath() + "context-app" + " addkey %f"
+		command = sys.GetBinDirPath() + app_client_name + " addkey %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action = sys.createAction("pgp-keys", "Add key", ucaId, command, "Add the key that will be used to encrypt and decrypt", "*")
 		actions.Actions = append(actions.Actions, *action)
@@ -104,22 +104,6 @@ func (sys *linux) SpecificSetup() {
 		ucaFile.Write(updatedUcaBytes)
 		ucaFile.Close()
 	}
-
-	// Create directory in /etc/context-app where the key is going to be stored
-	if _, err := os.Stat(homePath + "/etc"); os.IsNotExist(err) {
-		if createDirErr := os.Mkdir(homePath+"/etc", os.ModePerm); createDirErr != nil {
-			log.Fatalln("Cannot create directory in /etc in home", createDirErr)
-		}
-	}
-	if _, err := os.Stat(GetInstallKeyPath()); os.IsNotExist(err) {
-		if createDirErr := os.Mkdir(homePath+"/etc/context-app", os.ModePerm); createDirErr != nil {
-			log.Fatalln("Cannot create directory in /etc/context-app in home", createDirErr)
-		}
-	}
-}
-
-func (sys *linux) GetInstallKeyPath() string {
-	return GetHomeDir() + "/etc/context-app/"
 }
 
 func (sys *linux) GetInterpretor() string {

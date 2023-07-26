@@ -19,13 +19,13 @@ type EnvData struct {
 }
 
 func Setup(data *EnvData) {
-	if _, err := os.Stat(GetContextAppPath()); errors.Is(err, os.ErrNotExist) {
-		log.Fatalln("Context app is not installed.")
+	if err := SetupAppDirs(); errors.Is(err, os.ErrNotExist) {
+		os.Exit(1)
 	}
 
 	osmanager := GetOsManager()
 	osmanager.SpecificSetup()
-	var installKeyPath = osmanager.GetInstallKeyPath()
+	var installKeyPath = GetKeysDirPath()
 	data.loadedKey = keymgn.LoadKey(&installKeyPath)
 	data.interpretor = osmanager.GetInterpretor()
 
@@ -70,7 +70,7 @@ func Setup(data *EnvData) {
 	var handleAddKeyAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
 		var inputKeyPath string = getStringFromReqBody(req)
 		inputKeyPath = strings.Replace(inputKeyPath, "\"", "", -1)
-		outputKeyPath := GetInstallKeyPath() + keymgn.GenerateKeyName()
+		outputKeyPath := GetKeysDirPath() + "/" + keymgn.GenerateKeyName()
 
 		fmt.Println("Add key action was triggered: " + inputKeyPath)
 
@@ -83,13 +83,39 @@ func Setup(data *EnvData) {
 	http.HandleFunc("/addkey", handleAddKeyAction)
 }
 
+func SetupAppDirs() error {
+	//TODO the creation part of the directories is going to stay in the installer
+	if _, err := os.Stat(GetAppDirPath()); errors.Is(err, os.ErrNotExist) {
+		if createDirErr := os.Mkdir(GetAppDirPath(), os.ModePerm); createDirErr != nil {
+			log.Println("Cannot create app directory: ", createDirErr)
+			return err
+		}
+	}
+
+	if _, err := os.Stat(GetBinDirPath()); errors.Is(err, os.ErrNotExist) {
+		if createDirErr := os.Mkdir(GetBinDirPath(), os.ModePerm); createDirErr != nil {
+			log.Println("Cannot create client directory: ", createDirErr)
+			return err
+		}
+	}
+
+	if _, err := os.Stat(GetKeysDirPath()); errors.Is(err, os.ErrNotExist) {
+		if createDirErr := os.Mkdir(GetKeysDirPath(), os.ModePerm); createDirErr != nil {
+			log.Println("Cannot create keys directory: ", createDirErr)
+			return err
+		}
+	}
+
+	return nil
+}
+
 func Run() {
 	PORT := "1234"
 	http.ListenAndServe(":"+PORT, nil)
 }
 
 func CallScript(pythonExecPath *string, inputPath *string, outputPath *string, loadedKey *string, action string) {
-	scriptPath := filepath.Join(GetContextAppPath(), "filecrypt.py")
+	scriptPath := filepath.Join(GetBinDirPath(), "filecrypt.py")
 	c := exec.Command(*pythonExecPath, scriptPath, action, *loadedKey, *inputPath, *outputPath)
 
 	if out, err := c.Output(); err != nil {
@@ -115,11 +141,6 @@ func ComputeOutputPath(inputPath *string) (string, error) {
 	}
 
 	return outputPath, nil
-}
-
-func GetInstallKeyPath() string {
-	osmanager := GetOsManager()
-	return osmanager.GetInstallKeyPath()
 }
 
 func getStringFromReqBody(req *http.Request) string {

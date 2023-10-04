@@ -19,6 +19,7 @@ type EnvData struct {
 }
 
 func Setup(data *EnvData) {
+	fmt.Printf("Setup the environment\n")
 	if err := SetupAppDirs(); errors.Is(err, os.ErrNotExist) {
 		os.Exit(1)
 	}
@@ -111,6 +112,7 @@ func SetupAppDirs() error {
 
 func Run() {
 	PORT := "1234"
+	fmt.Printf("Server has been started on port %s\n", PORT)
 	http.ListenAndServe(":"+PORT, nil)
 }
 

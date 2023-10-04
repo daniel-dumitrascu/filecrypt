@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"server_app/env"
+	"server/env"
 )
 
 func main() {

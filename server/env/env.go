@@ -9,7 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"server_app/keymgn"
+	"server/keymgn"
 	"strings"
 )
 

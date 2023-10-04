@@ -1,11 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"server_app/env"
 )
 
 func main() {
-
+	fmt.Printf("Starting server...\n")
 	/*if ok, msg := env.Setup(); !ok {
 		fmt.Println("There was an issue in setting up the env: " + msg)
 		return
@@ -17,4 +18,5 @@ func main() {
 
 	env.Setup(&data)
 	env.Run()
+	fmt.Printf("Starting is shutting down\n")
 }

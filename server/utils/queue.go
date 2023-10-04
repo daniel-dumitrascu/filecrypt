@@ -2,37 +2,42 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Queue[T any] struct {
-	queue_data []T
+	queueData    []T
+	queueMaxSize int
 }
 
-func BuildQueue[T any]() *Queue[T] {
+func BuildQueue[T any](size int) *Queue[T] {
 	q := new(Queue[T])
-	q.queue_data = make([]T, 0)
+	q.queueData = make([]T, 0, size)
+	q.queueMaxSize = size
 	return q
 }
 
-// Adding on the bottom
+// Adding at the bottom
 func (q *Queue[T]) Add(new_data T) {
-	q.queue_data = append(q.queue_data, new_data)
-}
-
-// Getting from top
-func (q *Queue[T]) Get() (T, error) {
-	if len(q.queue_data) == 0 {
-		var def T
-		return def, errors.New("cannot return the top element from queue because the queue is empty")
+	if q.queueMaxSize == len(q.queueData) {
+		fmt.Printf("Queue is maxed out, cannot add anymore items\n")
+		return
 	}
-	return q.queue_data[0], nil
+	q.queueData = append(q.queueData, new_data)
 }
 
-// Removing from top
-func (q *Queue[T]) Remove() {
-	q.queue_data = q.queue_data[1:]
+// Getting the top and also removing it from queue
+func (q *Queue[T]) Next() (T, error) {
+	if len(q.queueData) == 0 {
+		var def T
+		return def, errors.New("[ERROR] cannot return the top element from queue because the queue is empty")
+	}
+	v := q.queueData[0]
+	q.queueData = q.queueData[1:]
+	return v, nil
 }
 
+// Get the size of the queue
 func (q *Queue[T]) Size() int {
-	return len(q.queue_data)
+	return len(q.queueData)
 }

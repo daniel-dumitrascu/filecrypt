@@ -4,7 +4,6 @@ import (
 	"server/request"
 )
 
-// TODO - adauga array-ul la init si mai apoi foloseste ca param la processor
 func Init(nrRoutines int,
 	tasks chan request.RequestData,
 	handlers *[3]func(req *request.RequestData)) {

@@ -1,6 +1,7 @@
 package env
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -9,8 +10,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"server/config"
 	"server/keymgn"
-	"strings"
+	"server/request"
+	"server/workerpool"
 )
 
 type EnvData struct {
@@ -30,9 +33,8 @@ func Setup(data *EnvData) {
 	data.loadedKey = keymgn.LoadKey(&installKeyPath)
 	data.interpretor = osmanager.GetInterpretor()
 
-	var handleEncryptAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
-		inputPath := getStringFromReqBody(req)
-		inputPath = strings.Replace(inputPath, "\"", "", -1)
+	var handleEncryptAction func(req *request.RequestData) = func(req *request.RequestData) {
+		inputPath := req.TargetPath
 		fmt.Println("Encrypt action was triggered for: " + inputPath)
 
 		outputPath, computeErr := ComputeOutputPath(&inputPath)
@@ -49,10 +51,9 @@ func Setup(data *EnvData) {
 		}
 	}
 
-	var handleDecryptAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
-		var inputPath string = getStringFromReqBody(req)
-		inputPath = strings.Replace(inputPath, "\"", "", -1)
-		fmt.Println("Decrypt action was triggered for: " + getStringFromReqBody(req))
+	var handleDecryptAction func(req *request.RequestData) = func(req *request.RequestData) {
+		inputPath := req.TargetPath
+		fmt.Println("Decrypt action was triggered for: " + inputPath)
 
 		outputPath, computeErr := ComputeOutputPath(&inputPath)
 		if computeErr != nil {
@@ -68,9 +69,8 @@ func Setup(data *EnvData) {
 		}
 	}
 
-	var handleAddKeyAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
-		var inputKeyPath string = getStringFromReqBody(req)
-		inputKeyPath = strings.Replace(inputKeyPath, "\"", "", -1)
+	var handleAddKeyAction func(req *request.RequestData) = func(req *request.RequestData) {
+		inputKeyPath := req.TargetPath
 		outputKeyPath := GetKeysDirPath() + "/" + keymgn.GenerateKeyName()
 
 		fmt.Println("Add key action was triggered: " + inputKeyPath)
@@ -78,10 +78,42 @@ func Setup(data *EnvData) {
 		data.loadedKey = keymgn.InstallKey(&inputKeyPath, &outputKeyPath)
 	}
 
+	var handlers [3]func(req *request.RequestData)
+	handlers[0] = handleEncryptAction
+	handlers[1] = handleDecryptAction
+	handlers[2] = handleAddKeyAction
+
+	tasks := make(chan request.RequestData, config.Tasks_channel_size)
+	workerpool.Init(config.Max_goroutines_nr, tasks, &handlers)
+
 	// Endpoints handlers
-	http.HandleFunc("/encrypt", handleEncryptAction)
-	http.HandleFunc("/decrypt", handleDecryptAction)
-	http.HandleFunc("/addkey", handleAddKeyAction)
+	http.HandleFunc("/process", processHandler)
+}
+
+func Run() {
+	PORT := "1234"
+	fmt.Printf("Server has been started on port %s\n", PORT)
+	http.ListenAndServe(":"+PORT, nil)
+}
+
+func processHandler(w http.ResponseWriter, req *http.Request) {
+	var reqData request.RequestData
+	err := json.NewDecoder(req.Body).Decode(&reqData)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if reqData.ActionType < 0 || reqData.ActionType > config.Max_handlers_nr {
+		fmt.Printf("The action type %d is invalid. This should be between 0 and %d",
+			reqData.ActionType, config.Max_handlers_nr-1)
+		return
+	}
+
+	//TODO - reqData trebuie pus acum pe channel care, in acest moment, nu este vizibil in aceasta metoda
+	// Gaseste o metoda de a rezolva aceasta problema
+
+	//fmt.Println(reqBody)
 }
 
 func SetupAppDirs() error {
@@ -108,12 +140,6 @@ func SetupAppDirs() error {
 	}
 
 	return nil
-}
-
-func Run() {
-	PORT := "1234"
-	fmt.Printf("Server has been started on port %s\n", PORT)
-	http.ListenAndServe(":"+PORT, nil)
 }
 
 func CallScript(pythonExecPath *string, inputPath *string, outputPath *string, loadedKey *string, action string) {

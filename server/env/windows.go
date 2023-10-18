@@ -8,6 +8,8 @@ import (
 	"strings"
 	"syscall"
 
+	"server/config"
+
 	"golang.org/x/sys/windows/registry"
 )
 
@@ -18,7 +20,7 @@ func (sys *windows) SpecificSetup() {
 	keyEncryptName := "FilecryptEncrypt"
 	keyDecryptName := "FilecryptDecrypt"
 	keyAddKey := "FilecryptAddKey"
-	execAppPath := GetBinDirPath() + "\\" + app_client_name + ".exe"
+	execAppPath := GetBinDirPath() + "\\" + config.App_client_name + ".exe"
 	fileKeysPath := "*\\shell\\"
 	dirKeysPath := "Folder\\shell\\"
 

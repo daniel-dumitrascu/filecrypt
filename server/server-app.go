@@ -18,5 +18,5 @@ func main() {
 
 	env.Setup(&data)
 	env.Run()
-	fmt.Printf("Starting is shutting down\n")
+	fmt.Printf("Server is shutting down\n")
 }

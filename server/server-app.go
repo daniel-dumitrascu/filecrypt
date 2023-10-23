@@ -14,9 +14,10 @@ func main() {
 
 	server.Start()*/
 
-	var data env.EnvData
+	var env *env.Environment = new(env.Environment)
 
-	env.Setup(&data)
+	env.Setup()
 	env.Run()
+
 	fmt.Printf("Server is shutting down\n")
 }

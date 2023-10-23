@@ -16,22 +16,23 @@ import (
 	"server/workerpool"
 )
 
-type EnvData struct {
+type Environment struct {
 	loadedKey   string
 	interpretor string
+	pool        workerpool.Pool
 }
 
-func Setup(data *EnvData) {
+func (env *Environment) Setup() {
 	fmt.Printf("Setup the environment\n")
-	if err := SetupAppDirs(); errors.Is(err, os.ErrNotExist) {
+	if err := setupAppDirs(); errors.Is(err, os.ErrNotExist) {
 		os.Exit(1)
 	}
 
 	osmanager := GetOsManager()
 	osmanager.SpecificSetup()
 	var installKeyPath = GetKeysDirPath()
-	data.loadedKey = keymgn.LoadKey(&installKeyPath)
-	data.interpretor = osmanager.GetInterpretor()
+	env.loadedKey = keymgn.LoadKey(&installKeyPath)
+	env.interpretor = osmanager.GetInterpretor()
 
 	var handleEncryptAction func(req *request.RequestData) = func(req *request.RequestData) {
 		inputPath := req.TargetPath
@@ -43,9 +44,9 @@ func Setup(data *EnvData) {
 			return
 		}
 
-		if len(data.loadedKey) > 0 {
-			fmt.Println("Loaded key: " + data.loadedKey)
-			CallScript(&data.interpretor, &inputPath, &outputPath, &data.loadedKey, "encrypt")
+		if len(env.loadedKey) > 0 {
+			fmt.Println("Loaded key: " + env.loadedKey)
+			CallScript(&env.interpretor, &inputPath, &outputPath, &env.loadedKey, "encrypt")
 		} else {
 			fmt.Println("Cannot encrypt because no key has been found")
 		}
@@ -61,9 +62,9 @@ func Setup(data *EnvData) {
 			return
 		}
 
-		if len(data.loadedKey) > 0 {
-			fmt.Println("Loaded key: " + data.loadedKey)
-			CallScript(&data.interpretor, &inputPath, &outputPath, &data.loadedKey, "decrypt")
+		if len(env.loadedKey) > 0 {
+			fmt.Println("Loaded key: " + env.loadedKey)
+			CallScript(&env.interpretor, &inputPath, &outputPath, &env.loadedKey, "decrypt")
 		} else {
 			fmt.Println("Cannot decrypt because no key has been found")
 		}
@@ -75,7 +76,7 @@ func Setup(data *EnvData) {
 
 		fmt.Println("Add key action was triggered: " + inputKeyPath)
 
-		data.loadedKey = keymgn.InstallKey(&inputKeyPath, &outputKeyPath)
+		env.loadedKey = keymgn.InstallKey(&inputKeyPath, &outputKeyPath)
 	}
 
 	var handlers [3]func(req *request.RequestData)
@@ -83,20 +84,19 @@ func Setup(data *EnvData) {
 	handlers[1] = handleDecryptAction
 	handlers[2] = handleAddKeyAction
 
-	tasks := make(chan request.RequestData, config.Tasks_channel_size)
-	workerpool.Init(config.Max_goroutines_nr, tasks, &handlers)
+	env.pool.Init(config.Max_goroutines_nr, &handlers)
 
 	// Endpoints handlers
-	http.HandleFunc("/process", processHandler)
+	http.HandleFunc("/process", env.processHandler)
 }
 
-func Run() {
+func (env *Environment) Run() {
 	PORT := "1234"
 	fmt.Printf("Server has been started on port %s\n", PORT)
 	http.ListenAndServe(":"+PORT, nil)
 }
 
-func processHandler(w http.ResponseWriter, req *http.Request) {
+func (env *Environment) processHandler(w http.ResponseWriter, req *http.Request) {
 	var reqData request.RequestData
 	err := json.NewDecoder(req.Body).Decode(&reqData)
 	if err != nil {
@@ -110,13 +110,10 @@ func processHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	//TODO - reqData trebuie pus acum pe channel care, in acest moment, nu este vizibil in aceasta metoda
-	// Gaseste o metoda de a rezolva aceasta problema
-
-	//fmt.Println(reqBody)
+	env.pool.AddTask(&reqData)
 }
 
-func SetupAppDirs() error {
+func setupAppDirs() error {
 	//TODO the creation part of the directories is going to stay in the installer
 	if _, err := os.Stat(GetAppDirPath()); errors.Is(err, os.ErrNotExist) {
 		if createDirErr := os.Mkdir(GetAppDirPath(), os.ModePerm); createDirErr != nil {
@@ -171,6 +168,7 @@ func ComputeOutputPath(inputPath *string) (string, error) {
 	return outputPath, nil
 }
 
+// TODO to remove
 func getStringFromReqBody(req *http.Request) string {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {

@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -13,8 +12,7 @@ import (
 func main() {
 	arguments := os.Args
 	if len(arguments) < 3 {
-		fmt.Println("Exiting - action and path argument weren't provided")
-		return
+		log.Fatalf("Exiting - action and path argument weren't provided")
 	}
 
 	action := arguments[1]

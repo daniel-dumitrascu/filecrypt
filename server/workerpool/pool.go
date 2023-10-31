@@ -1,9 +1,9 @@
 package workerpool
 
 import (
-	"fmt"
 	"server/config"
 	"server/request"
+	"server/utils"
 )
 
 type Pool struct {
@@ -22,7 +22,8 @@ func (p *Pool) AddTask(req *request.RequestData) {
 	select {
 	case p.tasks <- req:
 	default:
-		fmt.Println("Server is full at the moment. Please try later")
+		log := utils.GetLogger()
+		log.Error("Server is full at the moment. Please try later")
 	}
 }
 

@@ -1,10 +1,10 @@
 package env
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"server/config"
+	"server/utils"
 )
 
 type system interface {
@@ -13,12 +13,13 @@ type system interface {
 }
 
 func GetHomeDir() string {
+	log := utils.GetLogger()
 	homePath, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
 	if len(homePath) < 1 {
-		log.Fatalln("The user home directory path is not valid: " + string(homePath))
+		log.Fatal("The user home directory path is not valid: " + string(homePath))
 	}
 	return homePath
 }

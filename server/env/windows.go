@@ -3,12 +3,12 @@
 package env
 
 import (
-	"log"
 	"os/exec"
 	"strings"
 	"syscall"
 
 	"server/config"
+	"server/utils"
 
 	"golang.org/x/sys/windows/registry"
 )
@@ -52,6 +52,7 @@ func (sys *windows) SpecificSetup() {
 }
 
 func IsKeyPresent(keyName string, path string) bool {
+	log := utils.GetLogger()
 	_, err := registry.OpenKey(registry.CLASSES_ROOT, path+keyName, registry.QUERY_VALUE)
 	if err == syscall.ERROR_FILE_NOT_FOUND {
 		return false
@@ -63,6 +64,7 @@ func IsKeyPresent(keyName string, path string) bool {
 }
 
 func CreateContextEntry(path string, contextName string, contextDesc string, appToExec string, action string) {
+	log := utils.GetLogger()
 	encryptKeyHandler, _, err := registry.CreateKey(registry.CLASSES_ROOT, path+contextName,
 		registry.SET_VALUE|registry.CREATE_SUB_KEY)
 	if err != nil {
@@ -90,6 +92,7 @@ func CreateContextEntry(path string, contextName string, contextDesc string, app
 }
 
 func (sys *windows) GetInterpretor() string {
+	log := utils.GetLogger()
 	//Find the path to the python exec
 	cmd := exec.Command("where", "python")
 	output, err := cmd.Output()

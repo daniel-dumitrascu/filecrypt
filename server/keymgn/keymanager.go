@@ -1,10 +1,10 @@
 package keymgn
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"server/utils"
 	"sort"
 	"strconv"
 	"strings"
@@ -30,13 +30,15 @@ func LoadKey(installDir *string) string {
 		return nil
 	}
 
+	log := utils.GetLogger()
+
 	if err := filepath.Walk(*installDir, walkFunc); err != nil {
-		fmt.Printf("Error when trying to load the key: %s", err)
+		log.Error("Error when trying to load the key: %s", err)
 		return ""
 	}
 
 	if len(keyMatches) == 0 {
-		fmt.Printf("There is no key found to load")
+		log.Error("There is no key found to load")
 		return ""
 	}
 
@@ -50,21 +52,22 @@ func LoadKey(installDir *string) string {
 		return a > b
 	})
 
-	fmt.Println("Loaded key: " + keyMatches[0])
+	log.Info("Loaded key: " + keyMatches[0])
 	return keyMatches[0]
 }
 
 func InstallKey(inputKeyPath *string, outputKeyPath *string) string {
+	log := utils.GetLogger()
 	inputFile, err := os.Open(*inputKeyPath)
 	if err != nil {
-		fmt.Printf("Cannot install key. Key path is not valid: %s", err)
+		log.Error("Cannot install key. Key path is not valid: %s", err)
 		return ""
 	}
 
 	outputFile, err := os.Create(*outputKeyPath)
 	if err != nil {
 		inputFile.Close()
-		fmt.Printf("Couldn't open dest file: %s", err)
+		log.Error("Couldn't open dest file: %s", err)
 		return ""
 	}
 	defer outputFile.Close()
@@ -72,12 +75,12 @@ func InstallKey(inputKeyPath *string, outputKeyPath *string) string {
 	_, err = io.Copy(outputFile, inputFile)
 	inputFile.Close()
 	if err != nil {
-		fmt.Printf("Writing to output file failed: %s", err)
+		log.Error("Writing to output file failed: %s", err)
 		os.Remove(*outputKeyPath)
 		return ""
 	}
 
-	fmt.Println("The new installed new has been loaded: " + *outputKeyPath)
+	log.Info("The new installed key has been loaded: " + *outputKeyPath)
 	return *outputKeyPath
 }
 

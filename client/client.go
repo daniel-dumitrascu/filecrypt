@@ -3,8 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -13,20 +12,28 @@ import (
 func main() {
 	arguments := os.Args
 	if len(arguments) < 3 {
-		fmt.Println("Exiting - action and path argument weren't provided")
-		return
+		log.Fatalf("Exiting - action and path argument weren't provided")
 	}
 
 	action := arguments[1]
 	targetPath := string(arguments[2])
 
-	if action != "encrypt" && action != "decrypt" && action != "addkey" {
+	var reqData RequestData
+	if action == "encrypt" {
+		reqData.ActionType = 0
+	} else if action == "decrypt" {
+		reqData.ActionType = 1
+	} else if action == "addkey" {
+		reqData.ActionType = 2
+	} else {
 		log.Fatalf("Context-app has been called without a valid action")
 	}
 
-	postBody, _ := json.Marshal(targetPath)
-	responseBody := bytes.NewBuffer(postBody)
-	resp, err := http.Post(home_address+":"+home_port+action, media_type, responseBody)
+	reqData.TargetPath = targetPath
+
+	postBody, _ := json.Marshal(reqData)
+	requestBody := bytes.NewBuffer(postBody)
+	resp, err := http.Post(HomeAddress+":"+HomePort+"/process", MediaType, requestBody)
 
 	//Handle Error
 	if err != nil {
@@ -35,7 +42,7 @@ func main() {
 	defer resp.Body.Close()
 
 	//Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatalln(err)
 	}

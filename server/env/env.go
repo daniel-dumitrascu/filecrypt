@@ -1,108 +1,140 @@
 package env
 
 import (
+	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"server/config"
 	"server/keymgn"
-	"strings"
+	"server/request"
+	"server/utils"
+	"server/workerpool"
 )
 
-type EnvData struct {
+type Environment struct {
 	loadedKey   string
 	interpretor string
+	pool        workerpool.Pool
 }
 
-func Setup(data *EnvData) {
-	fmt.Printf("Setup the environment\n")
-	if err := SetupAppDirs(); errors.Is(err, os.ErrNotExist) {
+func (env *Environment) Setup() {
+	log := utils.GetLogger()
+	log.Info("Setup the environment")
+	if err := setupAppDirs(); errors.Is(err, os.ErrNotExist) {
 		os.Exit(1)
 	}
 
 	osmanager := GetOsManager()
 	osmanager.SpecificSetup()
 	var installKeyPath = GetKeysDirPath()
-	data.loadedKey = keymgn.LoadKey(&installKeyPath)
-	data.interpretor = osmanager.GetInterpretor()
+	env.loadedKey = keymgn.LoadKey(&installKeyPath)
+	env.interpretor = osmanager.GetInterpretor()
 
-	var handleEncryptAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
-		inputPath := getStringFromReqBody(req)
-		inputPath = strings.Replace(inputPath, "\"", "", -1)
-		fmt.Println("Encrypt action was triggered for: " + inputPath)
-
-		outputPath, computeErr := ComputeOutputPath(&inputPath)
-		if computeErr != nil {
-			fmt.Println(computeErr)
-			return
-		}
-
-		if len(data.loadedKey) > 0 {
-			fmt.Println("Loaded key: " + data.loadedKey)
-			CallScript(&data.interpretor, &inputPath, &outputPath, &data.loadedKey, "encrypt")
-		} else {
-			fmt.Println("Cannot encrypt because no key has been found")
-		}
-	}
-
-	var handleDecryptAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
-		var inputPath string = getStringFromReqBody(req)
-		inputPath = strings.Replace(inputPath, "\"", "", -1)
-		fmt.Println("Decrypt action was triggered for: " + getStringFromReqBody(req))
+	var handleEncryptAction func(req *request.RequestData) = func(req *request.RequestData) {
+		inputPath := req.TargetPath
+		log.Info("Encrypt action was triggered for: " + inputPath)
 
 		outputPath, computeErr := ComputeOutputPath(&inputPath)
 		if computeErr != nil {
-			fmt.Println(computeErr)
+			log.Error(computeErr)
 			return
 		}
 
-		if len(data.loadedKey) > 0 {
-			fmt.Println("Loaded key: " + data.loadedKey)
-			CallScript(&data.interpretor, &inputPath, &outputPath, &data.loadedKey, "decrypt")
+		if len(env.loadedKey) > 0 {
+			log.Info("Loaded key: " + env.loadedKey)
+			CallScript(&env.interpretor, &inputPath, &outputPath, &env.loadedKey, "encrypt")
 		} else {
-			fmt.Println("Cannot decrypt because no key has been found")
+			log.Error("Cannot encrypt because no key has been found")
 		}
 	}
 
-	var handleAddKeyAction func(w http.ResponseWriter, req *http.Request) = func(w http.ResponseWriter, req *http.Request) {
-		var inputKeyPath string = getStringFromReqBody(req)
-		inputKeyPath = strings.Replace(inputKeyPath, "\"", "", -1)
+	var handleDecryptAction func(req *request.RequestData) = func(req *request.RequestData) {
+		inputPath := req.TargetPath
+		log.Info("Decrypt action was triggered for: " + inputPath)
+
+		outputPath, computeErr := ComputeOutputPath(&inputPath)
+		if computeErr != nil {
+			log.Error(computeErr)
+			return
+		}
+
+		if len(env.loadedKey) > 0 {
+			log.Info("Loaded key: " + env.loadedKey)
+			CallScript(&env.interpretor, &inputPath, &outputPath, &env.loadedKey, "decrypt")
+		} else {
+			log.Error("Cannot decrypt because no key has been found")
+		}
+	}
+
+	var handleAddKeyAction func(req *request.RequestData) = func(req *request.RequestData) {
+		inputKeyPath := req.TargetPath
 		outputKeyPath := GetKeysDirPath() + "/" + keymgn.GenerateKeyName()
 
-		fmt.Println("Add key action was triggered: " + inputKeyPath)
+		log.Info("Add key action was triggered: " + inputKeyPath)
 
-		data.loadedKey = keymgn.InstallKey(&inputKeyPath, &outputKeyPath)
+		env.loadedKey = keymgn.InstallKey(&inputKeyPath, &outputKeyPath)
 	}
 
+	var handlers [3]func(req *request.RequestData)
+	handlers[0] = handleEncryptAction
+	handlers[1] = handleDecryptAction
+	handlers[2] = handleAddKeyAction
+
+	env.pool.Init(config.Max_goroutines_nr, &handlers)
+
 	// Endpoints handlers
-	http.HandleFunc("/encrypt", handleEncryptAction)
-	http.HandleFunc("/decrypt", handleDecryptAction)
-	http.HandleFunc("/addkey", handleAddKeyAction)
+	http.HandleFunc("/process", env.processHandler)
 }
 
-func SetupAppDirs() error {
+func (env *Environment) Run() {
+	PORT := "1234"
+	log := utils.GetLogger()
+	log.Info("Server has been started on port " + PORT)
+	http.ListenAndServe(":"+PORT, nil)
+}
+
+func (env *Environment) processHandler(w http.ResponseWriter, req *http.Request) {
+	var reqData request.RequestData
+	err := json.NewDecoder(req.Body).Decode(&reqData)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log := utils.GetLogger()
+
+	if reqData.ActionType < 0 || reqData.ActionType > config.Max_handlers_nr {
+		log.Info("The action type %d is invalid. This should be between 0 and %d",
+			reqData.ActionType, config.Max_handlers_nr-1)
+		return
+	}
+
+	env.pool.AddTask(&reqData)
+}
+
+func setupAppDirs() error {
 	//TODO the creation part of the directories is going to stay in the installer
+	log := utils.GetLogger()
 	if _, err := os.Stat(GetAppDirPath()); errors.Is(err, os.ErrNotExist) {
 		if createDirErr := os.Mkdir(GetAppDirPath(), os.ModePerm); createDirErr != nil {
-			log.Println("Cannot create app directory: ", createDirErr)
+			log.Error("Cannot create app directory: ", createDirErr)
 			return err
 		}
 	}
 
 	if _, err := os.Stat(GetBinDirPath()); errors.Is(err, os.ErrNotExist) {
 		if createDirErr := os.Mkdir(GetBinDirPath(), os.ModePerm); createDirErr != nil {
-			log.Println("Cannot create client directory: ", createDirErr)
+			log.Error("Cannot create client directory: ", createDirErr)
 			return err
 		}
 	}
 
 	if _, err := os.Stat(GetKeysDirPath()); errors.Is(err, os.ErrNotExist) {
 		if createDirErr := os.Mkdir(GetKeysDirPath(), os.ModePerm); createDirErr != nil {
-			log.Println("Cannot create keys directory: ", createDirErr)
+			log.Error("Cannot create keys directory: ", createDirErr)
 			return err
 		}
 	}
@@ -110,19 +142,14 @@ func SetupAppDirs() error {
 	return nil
 }
 
-func Run() {
-	PORT := "1234"
-	fmt.Printf("Server has been started on port %s\n", PORT)
-	http.ListenAndServe(":"+PORT, nil)
-}
-
 func CallScript(pythonExecPath *string, inputPath *string, outputPath *string, loadedKey *string, action string) {
 	scriptPath := filepath.Join(GetBinDirPath(), "filecrypt.py")
 	c := exec.Command(*pythonExecPath, scriptPath, action, *loadedKey, *inputPath, *outputPath)
+	log := utils.GetLogger()
 
 	if out, err := c.Output(); err != nil {
-		fmt.Println("Error when encrypting: ", err)
-		fmt.Println("Command output: ", out)
+		log.Error("Error when encrypting: ", err)
+		log.Error("Command output: ", out)
 	}
 }
 
@@ -143,13 +170,4 @@ func ComputeOutputPath(inputPath *string) (string, error) {
 	}
 
 	return outputPath, nil
-}
-
-func getStringFromReqBody(req *http.Request) string {
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	return string(body)
 }

@@ -5,10 +5,10 @@ package env
 import (
 	"encoding/xml"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"os"
 	"os/exec"
+	"server/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -52,11 +52,12 @@ func (sys *linux) SpecificSetup() {
 	//Setup patch to uca.xml
 	homePath := GetHomeDir()
 	ucaDirPath := homePath + "/.config/Thunar/uca.xml"
+	log := utils.GetLogger()
 
 	ucaFile, err := os.Open(ucaDirPath)
 	if err != nil {
 		ucaFile.Close()
-		log.Fatalln("Error when trying to open uca.xml: " + err.Error())
+		log.Fatal("Error when trying to open uca.xml: " + err.Error())
 	}
 
 	ucaByteValue, _ := ioutil.ReadAll(ucaFile)
@@ -64,7 +65,7 @@ func (sys *linux) SpecificSetup() {
 	err = xml.Unmarshal([]byte(ucaByteValue), &actions)
 	if err != nil {
 		ucaFile.Close()
-		log.Fatalln("Error when unmarshaling uca.xml: " + err.Error())
+		log.Fatal("Error when unmarshaling uca.xml: " + err.Error())
 	}
 
 	ucaFile.Close()
@@ -90,16 +91,16 @@ func (sys *linux) SpecificSetup() {
 
 		updatedUcaBytes, err := xml.MarshalIndent(actions, " ", "	")
 		if err != nil {
-			log.Fatalln("Error when marshaling uca.xml: " + err.Error())
+			log.Fatal("Error when marshaling uca.xml: " + err.Error())
 		}
 
 		if err := os.Remove(ucaDirPath); err != nil {
-			log.Printf("Failed to remove old uca.xml: %v", err)
+			log.Info("Failed to remove old uca.xml: %v", err)
 		}
 
 		ucaFile, err = os.Create(ucaDirPath)
 		if err != nil {
-			log.Printf("Failed to create new uca.xml: %v", err)
+			log.Error("Failed to create new uca.xml: %v", err)
 		}
 
 		ucaFile.Write(updatedUcaBytes)
@@ -111,6 +112,7 @@ func (sys *linux) GetInterpretor() string {
 	//Find the path to the python exec
 	cmd := exec.Command("which", "python")
 	output, err := cmd.Output()
+	log := utils.GetLogger()
 
 	if err != nil {
 		log.Fatal("Python not found on the system", err)

@@ -4,10 +4,11 @@ package env
 
 import (
 	"encoding/xml"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"os"
 	"os/exec"
+	"server/config"
 	"server/utils"
 	"strconv"
 	"strings"
@@ -60,7 +61,7 @@ func (sys *linux) SpecificSetup() {
 		log.Fatal("Error when trying to open uca.xml: " + err.Error())
 	}
 
-	ucaByteValue, _ := ioutil.ReadAll(ucaFile)
+	ucaByteValue, _ := io.ReadAll(ucaFile)
 	var actions Actions
 	err = xml.Unmarshal([]byte(ucaByteValue), &actions)
 	if err != nil {
@@ -70,21 +71,21 @@ func (sys *linux) SpecificSetup() {
 
 	ucaFile.Close()
 
-	foundIdx := slices.IndexFunc(actions.Actions, func(action Action) bool { return strings.Contains(action.Command, app_client_name) })
+	foundIdx := slices.IndexFunc(actions.Actions, func(action Action) bool { return strings.Contains(action.Command, config.App_client_name) })
 	if foundIdx == -1 {
 		// Client app entry was not found, we will add it at the end of the uca.xml
 
-		command := sys.GetBinDirPath() + app_client_name + " encrypt %f"
+		command := GetBinDirPath() + "/" + config.App_client_name + " encrypt %f"
 		ucaId := strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action := sys.createAction("ark", "Encrypt source", ucaId, command, "Encrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
-		command = sys.GetBinDirPath() + app_client_name + " decrypt %f"
+		command = GetBinDirPath() + "/" + config.App_client_name + " decrypt %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action = sys.createAction("ark", "Decrypt source", ucaId, command, "Decrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
-		command = sys.GetBinDirPath() + app_client_name + " addkey %f"
+		command = GetBinDirPath() + "/" + config.App_client_name + " addkey %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action = sys.createAction("pgp-keys", "Add key", ucaId, command, "Add the key that will be used to encrypt and decrypt", "*")
 		actions.Actions = append(actions.Actions, *action)
@@ -105,6 +106,7 @@ func (sys *linux) SpecificSetup() {
 
 		ucaFile.Write(updatedUcaBytes)
 		ucaFile.Close()
+		restartThunar()
 	}
 }
 
@@ -115,7 +117,7 @@ func (sys *linux) GetInterpretor() string {
 	log := utils.GetLogger()
 
 	if err != nil {
-		log.Fatal("Python not found on the system", err)
+		log.Fatal("Python not found on the system: ", err)
 	}
 
 	interpretor := strings.Replace(string(output), "\n", "", -1)
@@ -125,4 +127,14 @@ func (sys *linux) GetInterpretor() string {
 
 func GetOsManager() system {
 	return new(linux)
+}
+
+func restartThunar() {
+	cmd := exec.Command("pkill", "Thunar")
+	_, err := cmd.Output()
+	log := utils.GetLogger()
+
+	if err != nil {
+		log.Fatal("Cannot restart Thunar: ", err)
+	}
 }

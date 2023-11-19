@@ -1,7 +1,8 @@
 package config
 
 const App_generic_name = "FileCrypt"
-const App_client_name = "client"
+const Script_name = "filecrypt.py"
+const App_client_name = "filecrypt_client"
 const App_bin_dir = "bin"
 const App_keys_dir = "keys"
 

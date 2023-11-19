@@ -4,6 +4,7 @@ package env
 
 import (
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -103,6 +104,10 @@ func (sys *windows) GetInterpretor() string {
 
 	lines := strings.Fields(string(output))
 	return lines[0]
+}
+
+func (sys *windows) GetBinDirPath() string {
+	return filepath.Join(GetHomeDir(), "/"+config.App_generic_name+"/"+config.App_bin_dir)
 }
 
 func GetOsManager() system {

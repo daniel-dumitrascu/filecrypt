@@ -10,6 +10,7 @@ import (
 type system interface {
 	SpecificSetup()
 	GetInterpretor() string
+	GetBinDirPath() string
 }
 
 func GetHomeDir() string {
@@ -22,16 +23,6 @@ func GetHomeDir() string {
 		log.Fatal("The user home directory path is not valid: " + string(homePath))
 	}
 	return homePath
-}
-
-func GetAppDirPath() string {
-	homePath := GetHomeDir()
-	return filepath.Join(homePath, "/"+config.App_generic_name)
-}
-
-func GetBinDirPath() string {
-	homePath := GetHomeDir()
-	return filepath.Join(homePath, "/"+config.App_generic_name+"/"+config.App_bin_dir)
 }
 
 func GetKeysDirPath() string {

@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"server/config"
 	"server/utils"
 	"strconv"
@@ -51,8 +52,7 @@ func (sys *linux) createAction(icon string, name string, ucaId string, command s
 
 func (sys *linux) SpecificSetup() {
 	//Setup patch to uca.xml
-	homePath := GetHomeDir()
-	ucaDirPath := homePath + "/.config/Thunar/uca.xml"
+	ucaDirPath := GetHomeDir() + "/.config/Thunar/uca.xml"
 	log := utils.GetLogger()
 
 	ucaFile, err := os.Open(ucaDirPath)
@@ -75,17 +75,17 @@ func (sys *linux) SpecificSetup() {
 	if foundIdx == -1 {
 		// Client app entry was not found, we will add it at the end of the uca.xml
 
-		command := GetBinDirPath() + "/" + config.App_client_name + " encrypt %f"
+		command := sys.GetBinDirPath() + "/" + config.App_client_name + " encrypt %f"
 		ucaId := strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action := sys.createAction("ark", "Encrypt source", ucaId, command, "Encrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
-		command = GetBinDirPath() + "/" + config.App_client_name + " decrypt %f"
+		command = sys.GetBinDirPath() + "/" + config.App_client_name + " decrypt %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action = sys.createAction("ark", "Decrypt source", ucaId, command, "Decrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
-		command = GetBinDirPath() + "/" + config.App_client_name + " addkey %f"
+		command = sys.GetBinDirPath() + "/" + config.App_client_name + " addkey %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action = sys.createAction("pgp-keys", "Add key", ucaId, command, "Add the key that will be used to encrypt and decrypt", "*")
 		actions.Actions = append(actions.Actions, *action)
@@ -125,16 +125,44 @@ func (sys *linux) GetInterpretor() string {
 	return interpretor
 }
 
+func (sys *linux) GetBinDirPath() string {
+	return filepath.Join("/usr/bin/")
+}
+
 func GetOsManager() system {
 	return new(linux)
 }
 
 func restartThunar() {
-	cmd := exec.Command("pkill", "Thunar")
-	_, err := cmd.Output()
+	processName := "Thunar"
+	cmd := exec.Command("bash", "-c", "ps", "aux", "|", "grep", processName, "|", "grep", "-v", "grep")
+	output, err := cmd.CombinedOutput()
 	log := utils.GetLogger()
 
 	if err != nil {
-		log.Fatal("Cannot restart Thunar: ", err)
+		log.Fatal("There was an issue during Thunar restart: ", err.Error())
+	}
+
+	if !strings.Contains(string(output), processName) {
+		startThunar()
+		return
+	}
+
+	cmd = exec.Command("pkill", "-x", processName)
+	err = cmd.Run()
+
+	if err != nil {
+		log.Fatal("Cannot kill Thunar: ", err.Error())
+	}
+}
+
+func startThunar() {
+	processName := "Thunar"
+	cmd := exec.Command(processName)
+	err := cmd.Start()
+	log := utils.GetLogger()
+
+	if err != nil {
+		log.Fatal("There was an issue starting Thunar: ", err.Error())
 	}
 }

@@ -32,6 +32,7 @@ func (env *Environment) Setup() {
 	var installKeyPath = GetKeysDirPath()
 	env.loadedKey = keymgn.LoadKey(&installKeyPath)
 	env.interpretor = osmanager.GetInterpretor()
+	scriptPath := osmanager.GetBinDirPath() + config.Script_name
 
 	var handleEncryptAction func(req *request.RequestData) = func(req *request.RequestData) {
 		inputPath := req.TargetPath
@@ -45,7 +46,7 @@ func (env *Environment) Setup() {
 
 		if len(env.loadedKey) > 0 {
 			log.Info("Loaded key: " + env.loadedKey)
-			CallScript(&env.interpretor, &inputPath, &outputPath, &env.loadedKey, "encrypt")
+			callScript(&env.interpretor, &scriptPath, &inputPath, &outputPath, &env.loadedKey, "encrypt")
 		} else {
 			log.Error("Cannot encrypt because no key has been found")
 		}
@@ -63,7 +64,7 @@ func (env *Environment) Setup() {
 
 		if len(env.loadedKey) > 0 {
 			log.Info("Loaded key: " + env.loadedKey)
-			CallScript(&env.interpretor, &inputPath, &outputPath, &env.loadedKey, "decrypt")
+			callScript(&env.interpretor, &scriptPath, &inputPath, &outputPath, &env.loadedKey, "decrypt")
 		} else {
 			log.Error("Cannot decrypt because no key has been found")
 		}
@@ -118,20 +119,6 @@ func (env *Environment) processHandler(w http.ResponseWriter, req *http.Request)
 func setupAppDirs() error {
 	//TODO the creation part of the directories is going to stay in the installer
 	log := utils.GetLogger()
-	if _, err := os.Stat(GetAppDirPath()); errors.Is(err, os.ErrNotExist) {
-		if createDirErr := os.Mkdir(GetAppDirPath(), os.ModePerm); createDirErr != nil {
-			log.Error("Cannot create app directory: ", createDirErr)
-			return err
-		}
-	}
-
-	if _, err := os.Stat(GetBinDirPath()); errors.Is(err, os.ErrNotExist) {
-		if createDirErr := os.Mkdir(GetBinDirPath(), os.ModePerm); createDirErr != nil {
-			log.Error("Cannot create client directory: ", createDirErr)
-			return err
-		}
-	}
-
 	if _, err := os.Stat(GetKeysDirPath()); errors.Is(err, os.ErrNotExist) {
 		if createDirErr := os.Mkdir(GetKeysDirPath(), os.ModePerm); createDirErr != nil {
 			log.Error("Cannot create keys directory: ", createDirErr)
@@ -142,9 +129,8 @@ func setupAppDirs() error {
 	return nil
 }
 
-func CallScript(pythonExecPath *string, inputPath *string, outputPath *string, loadedKey *string, action string) {
-	scriptPath := filepath.Join(GetBinDirPath(), "filecrypt.py")
-	c := exec.Command(*pythonExecPath, scriptPath, action, *loadedKey, *inputPath, *outputPath)
+func callScript(pythonExecPath *string, scriptPath *string, inputPath *string, outputPath *string, loadedKey *string, action string) {
+	c := exec.Command(*pythonExecPath, *scriptPath, action, *loadedKey, *inputPath, *outputPath)
 	log := utils.GetLogger()
 
 	if out, err := c.Output(); err != nil {

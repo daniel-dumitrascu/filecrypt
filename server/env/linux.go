@@ -128,6 +128,16 @@ func (sys *linux) GetBinDirPath() string {
 	return "/usr/bin/"
 }
 
+func (sys *linux) ChangeFilePermission(keyPath *string) {
+	cmd := exec.Command("chmod", "600", *keyPath)
+	_, err := cmd.CombinedOutput()
+	log := utils.GetLogger()
+
+	if err != nil {
+		log.Error("There was an issue during the change of the key file permmision: ", err)
+	}
+}
+
 func GetOsManager() system {
 	return new(linux)
 }

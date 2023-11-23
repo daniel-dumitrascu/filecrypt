@@ -73,6 +73,7 @@ func (env *Environment) Setup() {
 		log.Info("Add key action was triggered: " + inputKeyPath)
 
 		env.loadedKey = keymgn.InstallKey(&inputKeyPath, &outputKeyPath)
+		osmanager.ChangeFilePermission(&outputKeyPath)
 	}
 
 	var handlers [3]func(req *request.RequestData)

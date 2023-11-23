@@ -11,6 +11,7 @@ type system interface {
 	SpecificSetup()
 	GetInterpretor() string
 	GetBinDirPath() string
+	ChangeFilePermission(keyPath *string)
 }
 
 func GetHomeDir() string {

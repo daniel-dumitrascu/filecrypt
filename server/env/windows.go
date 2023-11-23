@@ -110,6 +110,10 @@ func (sys *windows) GetBinDirPath() string {
 	return filepath.Join(GetHomeDir(), "/"+config.App_generic_name+"/"+config.App_bin_dir)
 }
 
+func (sys *linux) ChangeFilePermission(keyPath *string) {
+	//TODO to implement
+}
+
 func GetOsManager() system {
 	return new(windows)
 }

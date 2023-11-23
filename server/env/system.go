@@ -27,5 +27,5 @@ func GetHomeDir() string {
 
 func GetKeysDirPath() string {
 	homePath := GetHomeDir()
-	return filepath.Join(homePath, "/"+config.App_generic_name+"/"+config.App_keys_dir)
+	return filepath.Join(homePath, "/."+config.App_generic_name)
 }

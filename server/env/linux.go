@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"server/config"
 	"server/utils"
 	"strconv"
@@ -126,7 +125,7 @@ func (sys *linux) GetInterpretor() string {
 }
 
 func (sys *linux) GetBinDirPath() string {
-	return filepath.Join("/usr/bin/")
+	return "/usr/bin/"
 }
 
 func GetOsManager() system {

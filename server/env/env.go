@@ -23,10 +23,6 @@ type Environment struct {
 func (env *Environment) Setup() {
 	log := utils.GetLogger()
 	log.Info("Setup the environment")
-	if err := setupAppDirs(); errors.Is(err, os.ErrNotExist) {
-		os.Exit(1)
-	}
-
 	osmanager := GetOsManager()
 	osmanager.SpecificSetup()
 	var installKeyPath = GetKeysDirPath()
@@ -114,19 +110,6 @@ func (env *Environment) processHandler(w http.ResponseWriter, req *http.Request)
 	}
 
 	env.pool.AddTask(&reqData)
-}
-
-func setupAppDirs() error {
-	//TODO the creation part of the directories is going to stay in the installer
-	log := utils.GetLogger()
-	if _, err := os.Stat(GetKeysDirPath()); errors.Is(err, os.ErrNotExist) {
-		if createDirErr := os.Mkdir(GetKeysDirPath(), os.ModePerm); createDirErr != nil {
-			log.Error("Cannot create keys directory: ", createDirErr)
-			return err
-		}
-	}
-
-	return nil
 }
 
 func callScript(pythonExecPath *string, scriptPath *string, inputPath *string, outputPath *string, loadedKey *string, action string) {

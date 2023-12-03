@@ -11,4 +11,4 @@ User=root
 ExecStart=/usr/bin/filecrypt_server
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target

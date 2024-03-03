@@ -22,7 +22,7 @@ type Environment struct {
 
 func (env *Environment) Setup() {
 	log := utils.GetLogger()
-	log.Info("Setup the environment")
+	log.Info("<DEBUG> Setup the environment")
 	osmanager := GetOsManager()
 	osmanager.SpecificSetup()
 	var installKeyPath = GetKeysDirPath()

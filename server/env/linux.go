@@ -50,15 +50,19 @@ func (sys *linux) createAction(icon string, name string, ucaId string, command s
 }
 
 func (sys *linux) SpecificSetup() {
+	log.Info("<DEBUG> into SpecificSetup")
 	//Setup patch to uca.xml
 	ucaDirPath := GetHomeDir() + "/.config/Thunar/uca.xml"
 	log := utils.GetLogger()
+
+	log.Info("<DEBUG> into SpecificSetup 1")
 
 	ucaFile, err := os.Open(ucaDirPath)
 	if err != nil {
 		ucaFile.Close()
 		log.Fatal("Error when trying to open uca.xml: " + err.Error())
 	}
+	log.Info("<DEBUG> into SpecificSetup 2")
 
 	ucaByteValue, _ := io.ReadAll(ucaFile)
 	var actions Actions
@@ -68,9 +72,14 @@ func (sys *linux) SpecificSetup() {
 		log.Fatal("Error when unmarshaling uca.xml: " + err.Error())
 	}
 
+	log.Info("<DEBUG> into SpecificSetup 3")
+
 	ucaFile.Close()
 
+	log.Info("<DEBUG> into SpecificSetup 4")
+
 	foundIdx := slices.IndexFunc(actions.Actions, func(action Action) bool { return strings.Contains(action.Command, config.App_client_name) })
+	log.Info("<DEBUG> into SpecificSetup 5")
 	if foundIdx == -1 {
 		// Client app entry was not found, we will add it at the end of the uca.xml
 		log.Info("Menu entries weren't found. They will be added now!")

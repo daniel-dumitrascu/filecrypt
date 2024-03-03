@@ -73,7 +73,8 @@ func (sys *linux) SpecificSetup() {
 	foundIdx := slices.IndexFunc(actions.Actions, func(action Action) bool { return strings.Contains(action.Command, config.App_client_name) })
 	if foundIdx == -1 {
 		// Client app entry was not found, we will add it at the end of the uca.xml
-
+		log.Info("Menu entries weren't found. They will be added now!")
+		
 		command := sys.GetBinDirPath() + "/" + config.App_client_name + " encrypt %f"
 		ucaId := strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action := sys.createAction("ark", "Encrypt source", ucaId, command, "Encrypt source", "*")
@@ -106,6 +107,8 @@ func (sys *linux) SpecificSetup() {
 		ucaFile.Write(updatedUcaBytes)
 		ucaFile.Close()
 		restartThunar()
+	} else {
+		log.Info("Menu entries have been found! Nothing to do!")
 	}
 }
 
@@ -163,6 +166,8 @@ func restartThunar() {
 	if err != nil {
 		log.Fatal("Cannot kill Thunar: ", err.Error())
 	}
+
+	log.Info(processName + " was restarted succesfully!")
 }
 
 func startThunar() {

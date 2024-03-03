@@ -50,11 +50,11 @@ func (sys *linux) createAction(icon string, name string, ucaId string, command s
 }
 
 func (sys *linux) SpecificSetup() {
+	log := utils.GetLogger()
 	log.Info("<DEBUG> into SpecificSetup")
 	//Setup patch to uca.xml
 	ucaDirPath := GetHomeDir() + "/.config/Thunar/uca.xml"
-	log := utils.GetLogger()
-
+	
 	log.Info("<DEBUG> into SpecificSetup 1")
 
 	ucaFile, err := os.Open(ucaDirPath)

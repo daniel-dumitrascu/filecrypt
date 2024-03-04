@@ -4,10 +4,9 @@ After=network.target
 StartLimitIntervalSec=0
 
 [Service]
-Type=exec
+Type=simple
 Restart=always
-RestartSec=1
-User=root
+User=daniel
 ExecStart=/usr/bin/filecrypt_server
 
 [Install]

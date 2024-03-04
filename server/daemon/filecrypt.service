@@ -1,7 +1,6 @@
 [Unit]
 Description=Filecrypt server app
 After=network.target
-StartLimitIntervalSec=0
 
 [Service]
 Type=simple

@@ -3,7 +3,6 @@
 package env
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"io"
 	"math/rand"
@@ -52,18 +51,14 @@ func (sys *linux) createAction(icon string, name string, ucaId string, command s
 
 func (sys *linux) SpecificSetup() {
 	log := utils.GetLogger()
-	log.Info("<DEBUG> into SpecificSetup")
 	//Setup patch to uca.xml
 	ucaDirPath := GetHomeDir() + "/.config/Thunar/uca.xml"
-
-	log.Info("<DEBUG> into SpecificSetup 1")
 
 	ucaFile, err := os.Open(ucaDirPath)
 	if err != nil {
 		ucaFile.Close()
 		log.Fatal("Error when trying to open uca.xml: " + err.Error())
 	}
-	log.Info("<DEBUG> into SpecificSetup 2")
 
 	ucaByteValue, _ := io.ReadAll(ucaFile)
 	var actions Actions
@@ -73,14 +68,9 @@ func (sys *linux) SpecificSetup() {
 		log.Fatal("Error when unmarshaling uca.xml: " + err.Error())
 	}
 
-	log.Info("<DEBUG> into SpecificSetup 3")
-
 	ucaFile.Close()
 
-	log.Info("<DEBUG> into SpecificSetup 4")
-
 	foundIdx := slices.IndexFunc(actions.Actions, func(action Action) bool { return strings.Contains(action.Command, config.App_client_name) })
-	log.Info("<DEBUG> into SpecificSetup 5")
 	if foundIdx == -1 {
 		// Client app entry was not found, we will add it at the end of the uca.xml
 		log.Info("Menu entries weren't found. They will be added now!")
@@ -116,7 +106,7 @@ func (sys *linux) SpecificSetup() {
 
 		ucaFile.Write(updatedUcaBytes)
 		ucaFile.Close()
-		restartThunar()
+		restartUI()
 	} else {
 		log.Info("Menu entries have been found! Nothing to do!")
 	}
@@ -155,73 +145,24 @@ func GetOsManager() system {
 	return new(linux)
 }
 
-func restartThunar() {
-	processName := "Thunar"
-	cmd := exec.Command("bash", "-c", "ps", "aux", "|", "grep", processName, "|", "grep", "-v", "grep")
-	output, err := cmd.CombinedOutput()
+func restartUI() {
+	fileManagerProcessName := "thunar"
+	err := exec.Command(fileManagerProcessName, "--quit").Run()
 	log := utils.GetLogger()
-
 	if err != nil {
-		log.Fatal("There was an issue during Thunar restart: ", err.Error())
+		log.Error("There was an issue during the closing of the thunar process: ", err.Error())
+	} else {
+		startUI(&fileManagerProcessName)
 	}
 
-	if !strings.Contains(string(output), processName) {
-		startThunar()
-		return
-	}
-
-	cmd = exec.Command("pkill", "-x", processName)
-	err = cmd.Run()
-
-	if err != nil {
-		log.Fatal("Cannot kill Thunar: ", err.Error())
-	}
-
-	forceRestartDesktopIcons()
-
-	log.Info(processName + " was restarted succesfully!")
+	log.Info(fileManagerProcessName + " was restarted succesfully!")
 }
 
-func startThunar() {
-	processName := "Thunar"
-	cmd := exec.Command(processName)
-	err := cmd.Start()
+func startUI(processName *string) {
+	err := exec.Command(*processName, "&").Run()
 	log := utils.GetLogger()
 
 	if err != nil {
-		log.Fatal("There was an issue starting Thunar: ", err.Error())
+		log.Error("There was an issue starting thunar: ", err.Error())
 	}
-}
-
-func forceRestartDesktopIcons() {
-	cmd := exec.Command("xfconf-query", "-c", "xfce4-desktop", "-p", "/desktop-icons/show-hidden-files")
-	status, err := cmd.CombinedOutput()
-	log := utils.GetLogger()
-	if err != nil {
-		log.Fatal("There was an issue restarting the desktop icons: ", err.Error())
-	}
-
-	var originalValue bool
-	err = json.Unmarshal(status, &originalValue)
-	if err != nil {
-		log.Fatal("There was an issue restarting the desktop icons: ", err.Error())
-		return
-	}
-
-	cmd = exec.Command("xfconf-query", "-c", "xfce4-desktop", "-p", "/desktop-icons/show-hidden-files", "-s", strconv.FormatBool(!originalValue), "-t", "bool")
-	_, err = cmd.CombinedOutput()
-	if err != nil {
-		log.Fatal("There was an issue restarting the desktop icons: ", err.Error())
-		return
-	}
-
-	cmd = exec.Command("xfconf-query", "-c", "xfce4-desktop", "-p", "/desktop-icons/show-hidden-files", "-s", strconv.FormatBool(originalValue), "-t", "bool")
-	_, err = cmd.CombinedOutput()
-	if err != nil {
-		log.Fatal("There was an issue restarting the desktop icons: ", err.Error())
-		return
-	}
-
-	cmd = exec.Command("xfdesktop", "--reload")
-	cmd.CombinedOutput()
 }

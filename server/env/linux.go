@@ -3,6 +3,7 @@
 package env
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"io"
 	"math/rand"
@@ -54,7 +55,7 @@ func (sys *linux) SpecificSetup() {
 	log.Info("<DEBUG> into SpecificSetup")
 	//Setup patch to uca.xml
 	ucaDirPath := GetHomeDir() + "/.config/Thunar/uca.xml"
-	
+
 	log.Info("<DEBUG> into SpecificSetup 1")
 
 	ucaFile, err := os.Open(ucaDirPath)
@@ -83,7 +84,7 @@ func (sys *linux) SpecificSetup() {
 	if foundIdx == -1 {
 		// Client app entry was not found, we will add it at the end of the uca.xml
 		log.Info("Menu entries weren't found. They will be added now!")
-		
+
 		command := sys.GetBinDirPath() + "/" + config.App_client_name + " encrypt %f"
 		ucaId := strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action := sys.createAction("ark", "Encrypt source", ucaId, command, "Encrypt source", "*")
@@ -176,6 +177,8 @@ func restartThunar() {
 		log.Fatal("Cannot kill Thunar: ", err.Error())
 	}
 
+	forceRestartDesktopIcons()
+
 	log.Info(processName + " was restarted succesfully!")
 }
 
@@ -188,4 +191,37 @@ func startThunar() {
 	if err != nil {
 		log.Fatal("There was an issue starting Thunar: ", err.Error())
 	}
+}
+
+func forceRestartDesktopIcons() {
+	cmd := exec.Command("xfconf-query", "-c", "xfce4-desktop", "-p", "/desktop-icons/show-hidden-files")
+	status, err := cmd.CombinedOutput()
+	log := utils.GetLogger()
+	if err != nil {
+		log.Fatal("There was an issue restarting the desktop icons: ", err.Error())
+	}
+
+	var originalValue bool
+	err = json.Unmarshal(status, &originalValue)
+	if err != nil {
+		log.Fatal("There was an issue restarting the desktop icons: ", err.Error())
+		return
+	}
+
+	cmd = exec.Command("xfconf-query", "-c", "xfce4-desktop", "-p", "/desktop-icons/show-hidden-files", "-s", strconv.FormatBool(!originalValue), "-t", "bool")
+	_, err = cmd.CombinedOutput()
+	if err != nil {
+		log.Fatal("There was an issue restarting the desktop icons: ", err.Error())
+		return
+	}
+
+	cmd = exec.Command("xfconf-query", "-c", "xfce4-desktop", "-p", "/desktop-icons/show-hidden-files", "-s", strconv.FormatBool(originalValue), "-t", "bool")
+	_, err = cmd.CombinedOutput()
+	if err != nil {
+		log.Fatal("There was an issue restarting the desktop icons: ", err.Error())
+		return
+	}
+
+	cmd = exec.Command("xfdesktop", "--reload")
+	cmd.CombinedOutput()
 }

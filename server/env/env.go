@@ -28,7 +28,7 @@ func (env *Environment) Setup() {
 	var installKeyPath = osmanager.GetKeysDirPath()
 	env.loadedKey = keymgn.LoadKey(&installKeyPath)
 	env.interpretor = osmanager.GetInterpretor()
-	scriptPath := osmanager.GetBinDirPath() + config.Script_name
+	scriptPath := osmanager.GetBinDirPath() + "/" + config.Script_name
 
 	var handleEncryptAction func(req *request.RequestData) = func(req *request.RequestData) {
 		inputPath := req.TargetPath

@@ -25,7 +25,7 @@ func (env *Environment) Setup() {
 	log.Info("Setup the environment")
 	osmanager := GetOsManager()
 	osmanager.SpecificSetup()
-	var installKeyPath = GetKeysDirPath()
+	var installKeyPath = osmanager.GetKeysDirPath()
 	env.loadedKey = keymgn.LoadKey(&installKeyPath)
 	env.interpretor = osmanager.GetInterpretor()
 	scriptPath := osmanager.GetBinDirPath() + config.Script_name
@@ -68,7 +68,7 @@ func (env *Environment) Setup() {
 
 	var handleAddKeyAction func(req *request.RequestData) = func(req *request.RequestData) {
 		inputKeyPath := req.TargetPath
-		outputKeyPath := GetKeysDirPath() + "/" + keymgn.GenerateKeyName()
+		outputKeyPath := osmanager.GetKeysDirPath() + "/" + keymgn.GenerateKeyName()
 
 		log.Info("Add key action was triggered: " + inputKeyPath)
 

@@ -114,6 +114,11 @@ func (sys *windows) ChangeFilePermission(keyPath *string) {
 	//TODO to implement
 }
 
+func (sys *windows) GetKeysDirPath() string {
+	homePath := GetHomeDir()
+	return filepath.Join(homePath, "/"+config.App_generic_name)
+}
+
 func GetOsManager() system {
 	return new(windows)
 }

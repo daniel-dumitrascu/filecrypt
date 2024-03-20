@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"server/config"
 	"server/utils"
 	"strconv"
@@ -139,6 +140,11 @@ func (sys *linux) ChangeFilePermission(keyPath *string) {
 	if err != nil {
 		log.Error("There was an issue during the change of the key file permmision: ", err)
 	}
+}
+
+func (sys *linux) GetKeysDirPath() string {
+	homePath := GetHomeDir()
+	return filepath.Join(homePath, "/."+config.App_generic_name)
 }
 
 func GetOsManager() system {

@@ -118,7 +118,7 @@ func callScript(pythonExecPath *string, scriptPath *string, inputPath *string, o
 	log := utils.GetLogger()
 
 	if out, err := c.Output(); err != nil {
-		log.Error("Error when encrypting: ", err.Error())
+		log.Error("Error when encrypting: ", err)
 		log.Error("Command output: ", out)
 	}
 }

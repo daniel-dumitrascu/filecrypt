@@ -107,7 +107,7 @@ func (sys *windows) GetInterpretor() string {
 }
 
 func (sys *windows) GetBinDirPath() string {
-	return filepath.Join(GetHomeDir(), "/"+config.App_generic_name+"/"+config.App_bin_dir)
+	return filepath.Join("C:/Program Files/" + config.App_generic_name + "/bin")
 }
 
 func (sys *windows) ChangeFilePermission(keyPath *string) {

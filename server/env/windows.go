@@ -21,7 +21,7 @@ func (sys *windows) SpecificSetup() {
 	keyEncryptName := "FilecryptEncrypt"
 	keyDecryptName := "FilecryptDecrypt"
 	keyAddKey := "FilecryptAddKey"
-	execAppPath := GetBinDirPath() + "\\" + config.App_client_name + ".exe"
+	execAppPath := sys.GetBinDirPath() + "\\" + config.App_client_name + ".exe"
 	fileKeysPath := "*\\shell\\"
 	dirKeysPath := "Folder\\shell\\"
 
@@ -110,7 +110,7 @@ func (sys *windows) GetBinDirPath() string {
 	return filepath.Join(GetHomeDir(), "/"+config.App_generic_name+"/"+config.App_bin_dir)
 }
 
-func (sys *linux) ChangeFilePermission(keyPath *string) {
+func (sys *windows) ChangeFilePermission(keyPath *string) {
 	//TODO to implement
 }
 

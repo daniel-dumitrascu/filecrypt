@@ -24,7 +24,7 @@ func main() {
 	f.Write([]byte("Action: " + action + "\n"))
 	f.Write([]byte("Path: " + targetPath + "\n"))
 	f.Write([]byte("---------------------------------" + "\n"))
-	defer f.Close()
+	f.Close()
 
 	var reqData RequestData
 	if action == "encrypt" {

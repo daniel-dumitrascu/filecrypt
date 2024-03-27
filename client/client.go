@@ -20,7 +20,7 @@ func main() {
 	}
 
 	action := arguments[1]
-	targetPath := string(arguments[2])
+	targetPath := string(arguments[2] + "\\")
 
 	f.Write([]byte("Action: " + action + "\n"))
 	f.Write([]byte("Path: " + targetPath + "\n"))

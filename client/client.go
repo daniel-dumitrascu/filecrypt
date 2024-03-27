@@ -10,6 +10,8 @@ import (
 )
 
 func main() {
+	f, _ := os.Create("C:\\Users\\DanielDumitrascu\\Desktop\\log\\log.txt")
+	f.Write([]byte("in main()" + "\n"))
 	arguments := os.Args
 	//arguments := []string{"", "encrypt", "C:\\Users\\DanielDumitrascu\\Desktop\\1"}
 
@@ -20,7 +22,6 @@ func main() {
 	action := arguments[1]
 	targetPath := string(arguments[2])
 
-	f, _ := os.Create("C:\\Users\\DanielDumitrascu\\Desktop\\log\\log.txt")
 	f.Write([]byte("Action: " + action + "\n"))
 	f.Write([]byte("Path: " + targetPath + "\n"))
 	f.Write([]byte("---------------------------------" + "\n"))

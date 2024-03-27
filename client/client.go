@@ -20,7 +20,7 @@ func main() {
 	action := arguments[1]
 	targetPath := string(arguments[2])
 
-	f, _ := os.Create("C:\\Program Files\\filecrypt\\bin\\log.txt")
+	f, _ := os.Create("C:\\Users\\DanielDumitrascu\\Desktop\\log\\log.txt")
 	f.Write([]byte("Action: " + action + "\n"))
 	f.Write([]byte("Path: " + targetPath + "\n"))
 	f.Write([]byte("---------------------------------" + "\n"))

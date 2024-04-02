@@ -111,7 +111,7 @@ func (sys *windows) GetBinDirPath() string {
 }
 
 func (sys *windows) ChangeFilePermission(keyPath *string) {
-	//TODO to implement
+	//no implementation needed
 }
 
 func (sys *windows) GetKeysDirPath() string {

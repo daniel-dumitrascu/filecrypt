@@ -26,7 +26,7 @@ func (sys *windows) SpecificSetup() {
 	encryptIconPath := sys.GetBinDirPath() + "\\..\\resources\\encrypt.ico"
 	decryptIconPath := sys.GetBinDirPath() + "\\..\\resources\\decrypt.ico"
 	keyIconPath := sys.GetBinDirPath() + "\\..\\resources\\key.ico"
-	//dirKeysPath := "Folder\\shell\\"
+	dirKeysPath := "Folder\\shell\\"
 
 	// Action keys for handling files
 	if !IsKeyPresent(keyEncryptName, fileKeysPath) {
@@ -42,17 +42,17 @@ func (sys *windows) SpecificSetup() {
 	}
 
 	// Action keys for handling directories
-	// if !IsKeyPresent(keyEncryptName, dirKeysPath) {
-	// 	CreateContextEntry(dirKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt")
-	// }
+	if !IsKeyPresent(keyEncryptName, dirKeysPath) {
+		CreateContextEntry(dirKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt", encryptIconPath)
+	}
 
-	// if !IsKeyPresent(keyDecryptName, dirKeysPath) {
-	// 	CreateContextEntry(dirKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt")
-	// }
+	if !IsKeyPresent(keyDecryptName, dirKeysPath) {
+		CreateContextEntry(dirKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt", decryptIconPath)
+	}
 
-	// if !IsKeyPresent(keyAddKey, dirKeysPath) {
-	// 	CreateContextEntry(dirKeysPath, keyAddKey, "Add key", execAppPath, "addkey")
-	// }
+	if !IsKeyPresent(keyAddKey, dirKeysPath) {
+		CreateContextEntry(dirKeysPath, keyAddKey, "Add key", execAppPath, "addkey", keyIconPath)
+	}
 }
 
 func IsKeyPresent(keyName string, path string) bool {

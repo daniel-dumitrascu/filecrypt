@@ -23,33 +23,36 @@ func (sys *windows) SpecificSetup() {
 	keyAddKey := "FilecryptAddKey"
 	execAppPath := sys.GetBinDirPath() + "\\" + config.App_client_name + ".exe"
 	fileKeysPath := "*\\shell\\"
-	dirKeysPath := "Folder\\shell\\"
+	encryptIconPath := sys.GetBinDirPath() + "\\..\\resources\\encrypt.ico"
+	decryptIconPath := sys.GetBinDirPath() + "\\..\\resources\\decrypt.ico"
+	keyIconPath := sys.GetBinDirPath() + "\\..\\resources\\key.ico"
+	//dirKeysPath := "Folder\\shell\\"
 
 	// Action keys for handling files
 	if !IsKeyPresent(keyEncryptName, fileKeysPath) {
-		CreateContextEntry(fileKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt")
+		CreateContextEntry(fileKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt", encryptIconPath)
 	}
 
 	if !IsKeyPresent(keyDecryptName, fileKeysPath) {
-		CreateContextEntry(fileKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt")
+		CreateContextEntry(fileKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt", decryptIconPath)
 	}
 
 	if !IsKeyPresent(keyAddKey, fileKeysPath) {
-		CreateContextEntry(fileKeysPath, keyAddKey, "Add key", execAppPath, "addkey")
+		CreateContextEntry(fileKeysPath, keyAddKey, "Add key", execAppPath, "addkey", keyIconPath)
 	}
 
 	// Action keys for handling directories
-	if !IsKeyPresent(keyEncryptName, dirKeysPath) {
-		CreateContextEntry(dirKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt")
-	}
+	// if !IsKeyPresent(keyEncryptName, dirKeysPath) {
+	// 	CreateContextEntry(dirKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt")
+	// }
 
-	if !IsKeyPresent(keyDecryptName, dirKeysPath) {
-		CreateContextEntry(dirKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt")
-	}
+	// if !IsKeyPresent(keyDecryptName, dirKeysPath) {
+	// 	CreateContextEntry(dirKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt")
+	// }
 
-	if !IsKeyPresent(keyAddKey, dirKeysPath) {
-		CreateContextEntry(dirKeysPath, keyAddKey, "Add key", execAppPath, "addkey")
-	}
+	// if !IsKeyPresent(keyAddKey, dirKeysPath) {
+	// 	CreateContextEntry(dirKeysPath, keyAddKey, "Add key", execAppPath, "addkey")
+	// }
 }
 
 func IsKeyPresent(keyName string, path string) bool {
@@ -64,7 +67,7 @@ func IsKeyPresent(keyName string, path string) bool {
 	return true
 }
 
-func CreateContextEntry(path string, contextName string, contextDesc string, appToExec string, action string) {
+func CreateContextEntry(path string, contextName string, contextDesc string, appToExec string, action string, iconPath string) {
 	log := utils.GetLogger()
 	encryptKeyHandler, _, err := registry.CreateKey(registry.CLASSES_ROOT, path+contextName,
 		registry.SET_VALUE|registry.CREATE_SUB_KEY)
@@ -87,6 +90,11 @@ func CreateContextEntry(path string, contextName string, contextDesc string, app
 	defer encryptSubKeyHandler.Close()
 
 	err = encryptSubKeyHandler.SetStringValue("", "\""+appToExec+"\""+" \""+action+"\" "+"\"%1\"")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = encryptSubKeyHandler.SetStringValue("Icon", iconPath)
 	if err != nil {
 		log.Fatal(err)
 	}

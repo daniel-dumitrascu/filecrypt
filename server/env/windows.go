@@ -49,10 +49,6 @@ func (sys *windows) SpecificSetup() {
 	if !IsKeyPresent(keyDecryptName, dirKeysPath) {
 		CreateContextEntry(dirKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt", decryptIconPath)
 	}
-
-	if !IsKeyPresent(keyAddKey, dirKeysPath) {
-		CreateContextEntry(dirKeysPath, keyAddKey, "Add key", execAppPath, "addkey", keyIconPath)
-	}
 }
 
 func IsKeyPresent(keyName string, path string) bool {

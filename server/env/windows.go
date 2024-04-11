@@ -81,6 +81,11 @@ func CreateContextEntry(path string, contextName string, contextDesc string, app
 		log.Fatal(err)
 	}
 
+	err = encryptKeyHandler.SetStringValue("Icon", iconPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Create command sub-key
 	encryptSubKeyHandler, _, err := registry.CreateKey(registry.CLASSES_ROOT, path+contextName+"\\command",
 		registry.SET_VALUE|registry.CREATE_SUB_KEY)
@@ -90,11 +95,6 @@ func CreateContextEntry(path string, contextName string, contextDesc string, app
 	defer encryptSubKeyHandler.Close()
 
 	err = encryptSubKeyHandler.SetStringValue("", "\""+appToExec+"\""+" \""+action+"\" "+"\"%1\"")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = encryptSubKeyHandler.SetStringValue("Icon", iconPath)
 	if err != nil {
 		log.Fatal(err)
 	}

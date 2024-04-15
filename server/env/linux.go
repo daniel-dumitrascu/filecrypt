@@ -76,19 +76,22 @@ func (sys *linux) SpecificSetup() {
 		// Client app entry was not found, we will add it at the end of the uca.xml
 		log.Info("Menu entries weren't found. They will be added now!")
 
+		icon := GetHomeDir() + "/.icons/encrypt.ico"
 		command := sys.GetBinDirPath() + "/" + config.App_client_name + " encrypt %f"
 		ucaId := strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
-		action := sys.createAction("ark", "Encrypt source", ucaId, command, "Encrypt source", "*")
+		action := sys.createAction(icon, "Encrypt source", ucaId, command, "Encrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
+		icon = GetHomeDir() + "/.icons/decrypt.ico"
 		command = sys.GetBinDirPath() + "/" + config.App_client_name + " decrypt %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
-		action = sys.createAction("ark", "Decrypt source", ucaId, command, "Decrypt source", "*")
+		action = sys.createAction(icon, "Decrypt source", ucaId, command, "Decrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
+		icon = GetHomeDir() + "/.icons/key.ico"
 		command = sys.GetBinDirPath() + "/" + config.App_client_name + " addkey %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
-		action = sys.createAction("pgp-keys", "Add key", ucaId, command, "Add the key that will be used to encrypt and decrypt", "*")
+		action = sys.createAction(icon, "Add key", ucaId, command, "Add the key that will be used to encrypt and decrypt", "*")
 		actions.Actions = append(actions.Actions, *action)
 
 		updatedUcaBytes, err := xml.MarshalIndent(actions, " ", "	")

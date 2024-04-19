@@ -43,6 +43,7 @@ func (env *Environment) Setup() {
 		if len(env.loadedKey) > 0 {
 			log.Info("Loaded key: " + env.loadedKey)
 			callScript(&env.interpretor, &scriptPath, &inputPath, &outputPath, &env.loadedKey, "encrypt")
+			log.Info("Successfully encrypting the file: " + inputPath)
 		} else {
 			log.Error("Cannot encrypt because no key has been found")
 		}
@@ -61,6 +62,7 @@ func (env *Environment) Setup() {
 		if len(env.loadedKey) > 0 {
 			log.Info("Loaded key: " + env.loadedKey)
 			callScript(&env.interpretor, &scriptPath, &inputPath, &outputPath, &env.loadedKey, "decrypt")
+			log.Info("Successfully decrypting the file: " + inputPath)
 		} else {
 			log.Error("Cannot decrypt because no key has been found")
 		}

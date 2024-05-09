@@ -307,7 +307,7 @@ func getFileSize(filepath string) (int64, error) {
 
 func getEncryptedFilepath(file string, outputpath string) string {
 	originalFilename := filepath.Base(file)
-	return outputpath + "/" + originalFilename + ".crypt"
+	return outputpath + "/" + originalFilename + ".cr"
 }
 
 func getDecryptedFilepath(file string, outputpath string) string {

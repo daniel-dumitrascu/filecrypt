@@ -19,14 +19,14 @@ func EncryptFile(filepath string, outputpath string, key []byte) error {
 	// Load cipher
 	aesgcm, nonce, err := loadCipherForEncryption(key)
 	if err != nil {
-		log.Error("Error when loading the cipher: %v", err)
+		log.Error("Error when loading the cipher: ", err)
 		return err
 	}
 
 	// Open the file that will be encrypted
 	sourceFileHandler, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
 	if err != nil {
-		log.Error("Error opening the target file (%s): %v", filepath, err)
+		log.Error("Error opening the target file: ", err)
 		return err
 	}
 	defer sourceFileHandler.Close()
@@ -35,7 +35,7 @@ func EncryptFile(filepath string, outputpath string, key []byte) error {
 	secretFilepath := getEncryptedFilepath(filepath, outputpath)
 	destFileHandler, err := os.OpenFile(secretFilepath, os.O_APPEND|os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Error("Error opening the destination file (%s): %v", secretFilepath, err)
+		log.Error("Error opening the destination file: ", err)
 		return err
 	}
 	defer destFileHandler.Close()
@@ -43,7 +43,7 @@ func EncryptFile(filepath string, outputpath string, key []byte) error {
 	// Calculate the number of chunk data based on the chunk size
 	fileSize, err := getFileSize(filepath)
 	if err != nil {
-		log.Error("Error getting the file size of the target file: %v", err)
+		log.Error("Error getting the file size of the target file: ", err)
 		return err
 	}
 
@@ -54,7 +54,7 @@ func EncryptFile(filepath string, outputpath string, key []byte) error {
 	// Start reading the source file
 	readSize, err := sourceFileHandler.Read(chunckBuffer)
 	if err != nil {
-		log.Error("Error reading file (%s): %v", filepath, err)
+		log.Error("Error reading file: ", err)
 		return err
 	}
 
@@ -65,11 +65,11 @@ func EncryptFile(filepath string, outputpath string, key []byte) error {
 		chunkIndex++
 
 		if _, err = destFileHandler.Write(encryptedChunck); err != nil {
-			log.Error("Error writing encrypted data: %v", err)
+			log.Error("Error writing encrypted data: ", err)
 			return err
 		}
 		if err = destFileHandler.Sync(); err != nil {
-			log.Error("Error syncking data to file: %v", err)
+			log.Error("Error syncking data to file: ", err)
 			return err
 		}
 
@@ -85,14 +85,14 @@ func DecryptFile(filepath string, outputpath string, key []byte) error {
 	// Load cipher
 	aesgcm, err := loadCipherForDecryption(key)
 	if err != nil {
-		log.Error("Error when loading the cipher: %v", err)
+		log.Error("Error when loading the cipher: ", err)
 		return err
 	}
 
 	// Open the file that will be decrypted
 	sourceFileHandler, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
 	if err != nil {
-		log.Error("Error opening the target file (%s): %v", filepath, err)
+		log.Error("Error opening the target file: ", err)
 		return err
 	}
 	defer sourceFileHandler.Close()
@@ -101,14 +101,14 @@ func DecryptFile(filepath string, outputpath string, key []byte) error {
 	clearFilepath := getDecryptedFilepath(filepath, outputpath)
 	destFileHandler, err := os.OpenFile(clearFilepath, os.O_APPEND|os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Error("Error opening the destination file (%s): %v", clearFilepath, err)
+		log.Error("Error opening the destination file: ", err)
 		return err
 	}
 	defer destFileHandler.Close()
 
 	fileSize, err := getFileSize(filepath)
 	if err != nil {
-		log.Error("Error getting the file size of the target file (%s): %v", filepath, err)
+		log.Error("Error getting the file size of the target file: ", err)
 		return err
 	}
 
@@ -118,7 +118,7 @@ func DecryptFile(filepath string, outputpath string, key []byte) error {
 	chunckBuffer := make([]byte, bytesToRead)
 	dataReadSize, err := sourceFileHandler.Read(chunckBuffer)
 	if err != nil {
-		log.Error("Error reading file (%s): %v", filepath, err)
+		log.Error("Error reading file: ", err)
 		return err
 	}
 	chunckIndex := 1
@@ -126,18 +126,18 @@ func DecryptFile(filepath string, outputpath string, key []byte) error {
 	for dataReadSize > 0 {
 		decryptedChunck, err := decodeDataBlock(chunckBuffer[:dataReadSize], aesgcm)
 		if err != nil {
-			log.Error("Error during data chunck decryption: %v", err)
+			log.Error("Error during data chunck decryption: ", err)
 			return err
 		}
 		log.Info("Decrypting data chunk %d of %d (read %d bytes) (decrypted %d bytes)\n", chunckIndex, chunckNr, len(chunckBuffer), len(decryptedChunck))
 		chunckIndex++
 
 		if _, err = destFileHandler.Write(decryptedChunck); err != nil {
-			log.Error("Error writing decrypted data: %v", err)
+			log.Error("Error writing decrypted data: ", err)
 			return err
 		}
 		if err = destFileHandler.Sync(); err != nil {
-			log.Error("Error syncking data to file: %v", err)
+			log.Error("Error syncking data to file: ", err)
 			return err
 		}
 
@@ -151,7 +151,7 @@ func EncryptDir(dirpath string, outputpath string, key []byte) error {
 	log := utils.GetLogger()
 	info, err := os.Stat(dirpath)
 	if err != nil {
-		log.Error("Error %v getting the info stats for: %s", err, dirpath)
+		log.Error("Error getting the info stats: ", err)
 		return err
 	}
 
@@ -164,7 +164,7 @@ func EncryptDir(dirpath string, outputpath string, key []byte) error {
 	if _, err := os.Stat(newEncryptPath); os.IsNotExist(err) {
 		err := os.Mkdir(newEncryptPath, os.ModeDir)
 		if err != nil {
-			log.Error("Error creating the new dir (%s) that will store the encrypted files: %v", newEncryptPath, err)
+			log.Error("Error creating the new dir that will store the encrypted files: ", err)
 			return err
 		}
 	}
@@ -177,7 +177,7 @@ func EncryptDir(dirpath string, outputpath string, key []byte) error {
 			if _, err := os.Stat(newfpath); os.IsNotExist(err) {
 				err := os.MkdirAll(newfpath, os.ModePerm)
 				if err != nil {
-					log.Error("Error creating the new dir path (%s): %v", newEncryptPath, err)
+					log.Error("Error creating the new dir path: ", err)
 					return err
 				}
 			}
@@ -198,7 +198,7 @@ func DecryptDir(dirpath string, outputpath string, key []byte) error {
 	log := utils.GetLogger()
 	info, err := os.Stat(dirpath)
 	if err != nil {
-		log.Error("Error %v getting the info stats for: %s", err, dirpath)
+		log.Error("Error getting the info stats: ", err)
 		return err
 	}
 
@@ -211,7 +211,7 @@ func DecryptDir(dirpath string, outputpath string, key []byte) error {
 	if _, err := os.Stat(newDecryptPath); os.IsNotExist(err) {
 		err := os.Mkdir(newDecryptPath, os.ModeDir)
 		if err != nil {
-			log.Error("Error creating the new dir (%s) that will store the decrypted files: %v", newDecryptPath, err)
+			log.Error("Error creating the new dir that will store the decrypted files: ", err)
 			return err
 		}
 	}
@@ -224,7 +224,7 @@ func DecryptDir(dirpath string, outputpath string, key []byte) error {
 			if _, err := os.Stat(newfpath); os.IsNotExist(err) {
 				err := os.MkdirAll(newfpath, os.ModePerm)
 				if err != nil {
-					log.Error("Error creating the new dir path (%s): %v", newDecryptPath, err)
+					log.Error("Error creating the new dir path: ", err)
 					return err
 				}
 			}
@@ -246,7 +246,7 @@ func GenKey() []byte {
 	// Generate a random symmetric key for HMAC and AES
 	key := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, key); err != nil {
-		log.Error("Error generating symmetric key: %v", err)
+		log.Error("Error generating symmetric key: ", err)
 		return nil
 	}
 	return key

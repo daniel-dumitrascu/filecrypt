@@ -61,7 +61,7 @@ func EncryptFile(filepath string, outputpath string, key []byte) error {
 	chunkIndex := 1
 	for readSize > 0 {
 		encryptedChunck := encryptDataBlock(chunckBuffer[:readSize], aesgcm, nonce)
-		log.Info("Encrypting data chunk %d of %d (read %d bytes) (encrypted %d bytes)\n", chunkIndex, chunckNr, len(chunckBuffer), len(encryptedChunck))
+		log.Info("Encrypting data chunk", chunkIndex, " of ", chunckNr, " (read ", len(chunckBuffer), " bytes) (encrypted ", len(encryptedChunck), " bytes)")
 		chunkIndex++
 
 		if _, err = destFileHandler.Write(encryptedChunck); err != nil {
@@ -129,7 +129,7 @@ func DecryptFile(filepath string, outputpath string, key []byte) error {
 			log.Error("Error during data chunck decryption: ", err)
 			return err
 		}
-		log.Info("Decrypting data chunk %d of %d (read %d bytes) (decrypted %d bytes)\n", chunckIndex, chunckNr, len(chunckBuffer), len(decryptedChunck))
+		log.Info("Decrypting data chunk", chunckIndex, " of ", chunckNr, " (read ", len(chunckBuffer), " bytes) (decrypted ", len(decryptedChunck), " bytes)")
 		chunckIndex++
 
 		if _, err = destFileHandler.Write(decryptedChunck); err != nil {

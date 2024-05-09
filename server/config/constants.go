@@ -1,7 +1,6 @@
 package config
 
 const App_generic_name = "filecrypt"
-const Script_name = "filecrypt.py"
 const App_client_name = "filecrypt_client"
 
 const Tasks_channel_size = 30

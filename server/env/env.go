@@ -5,9 +5,9 @@ import (
 	"errors"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"server/config"
+	"server/crypt"
 	"server/keymgn"
 	"server/request"
 	"server/utils"
@@ -15,9 +15,8 @@ import (
 )
 
 type Environment struct {
-	loadedKey   string
-	interpretor string
-	pool        workerpool.Pool
+	loadedKey []byte
+	pool      workerpool.Pool
 }
 
 func (env *Environment) Setup() {
@@ -27,8 +26,6 @@ func (env *Environment) Setup() {
 	osmanager.SpecificSetup()
 	var installKeyPath = osmanager.GetKeysDirPath()
 	env.loadedKey = keymgn.LoadKey(&installKeyPath)
-	env.interpretor = osmanager.GetInterpretor()
-	scriptPath := osmanager.GetBinDirPath() + "/" + config.Script_name
 
 	var handleEncryptAction func(req *request.RequestData) = func(req *request.RequestData) {
 		inputPath := req.TargetPath
@@ -41,8 +38,7 @@ func (env *Environment) Setup() {
 		}
 
 		if len(env.loadedKey) > 0 {
-			log.Info("Loaded key: " + env.loadedKey)
-			callScript(&env.interpretor, &scriptPath, &inputPath, &outputPath, &env.loadedKey, "encrypt")
+			crypt.EncryptDir(inputPath, outputPath, env.loadedKey)
 			log.Info("Successfully encrypting the file: " + inputPath)
 		} else {
 			log.Error("Cannot encrypt because no key has been found")
@@ -60,8 +56,7 @@ func (env *Environment) Setup() {
 		}
 
 		if len(env.loadedKey) > 0 {
-			log.Info("Loaded key: " + env.loadedKey)
-			callScript(&env.interpretor, &scriptPath, &inputPath, &outputPath, &env.loadedKey, "decrypt")
+			crypt.DecryptDir(inputPath, outputPath, env.loadedKey)
 			log.Info("Successfully decrypting the file: " + inputPath)
 		} else {
 			log.Error("Cannot decrypt because no key has been found")
@@ -74,7 +69,8 @@ func (env *Environment) Setup() {
 
 		log.Info("Add key action was triggered: " + inputKeyPath)
 
-		env.loadedKey = keymgn.InstallKey(&inputKeyPath, &outputKeyPath)
+		keymgn.InstallKey(&inputKeyPath, &outputKeyPath)
+		env.loadedKey = keymgn.LoadKey(&outputKeyPath)
 		osmanager.ChangeFilePermission(&outputKeyPath)
 	}
 
@@ -113,16 +109,6 @@ func (env *Environment) processHandler(w http.ResponseWriter, req *http.Request)
 	}
 
 	env.pool.AddTask(&reqData)
-}
-
-func callScript(pythonExecPath *string, scriptPath *string, inputPath *string, outputPath *string, loadedKey *string, action string) {
-	c := exec.Command(*pythonExecPath, *scriptPath, action, *loadedKey, *inputPath, *outputPath)
-	log := utils.GetLogger()
-
-	if out, err := c.Output(); err != nil {
-		log.Error("Error when encrypting: ", err)
-		log.Error("Command output: ", out)
-	}
 }
 
 func ComputeOutputPath(inputPath *string) (string, error) {

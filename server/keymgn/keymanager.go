@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func LoadKey(installDir *string) string {
+func LoadKey(installDir *string) []byte {
 	// Take the key that has the right name format --> install_key_[timestamp]
 	// having the latest timestamp
 	var keyMatches []string
@@ -34,12 +34,12 @@ func LoadKey(installDir *string) string {
 
 	if err := filepath.Walk(*installDir, walkFunc); err != nil {
 		log.Error("Error when trying to load the key: %s", err)
-		return ""
+		return nil
 	}
 
 	if len(keyMatches) == 0 {
 		log.Error("There is no key found to load")
-		return ""
+		return nil
 	}
 
 	sort.Slice(keyMatches, func(i int, j int) bool {
@@ -53,7 +53,13 @@ func LoadKey(installDir *string) string {
 	})
 
 	log.Info("Loaded key: " + keyMatches[0])
-	return keyMatches[0]
+	key, err := os.ReadFile(keyMatches[0])
+	if err != nil {
+		log.Error("Issue reading the key")
+		return nil
+	}
+
+	return key
 }
 
 func InstallKey(inputKeyPath *string, outputKeyPath *string) string {

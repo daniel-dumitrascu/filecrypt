@@ -1,6 +1,7 @@
 package keymgn
 
 import (
+	"encoding/base64"
 	"io"
 	"os"
 	"path/filepath"
@@ -56,6 +57,12 @@ func LoadKey(installDir *string) []byte {
 	key, err := os.ReadFile(keyMatches[0])
 	if err != nil {
 		log.Error("Issue reading the key")
+		return nil
+	}
+
+	key, err = base64.StdEncoding.DecodeString(string(key))
+	if err != nil {
+		log.Error("Issue decoding the key")
 		return nil
 	}
 

@@ -97,7 +97,7 @@ func CreateContextEntry(path string, contextName string, contextDesc string, app
 	}
 	defer encryptSubKeyHandler.Close()
 
-	err = encryptSubKeyHandler.SetStringValue("", "\""+appToExec+"\""+" \""+action+"\" "+"\"exeParam\"")
+	err = encryptSubKeyHandler.SetStringValue("", "\""+appToExec+"\""+" \""+action+"\" "+"\""+exeParam+"\"")
 	if err != nil {
 		log.Fatal(err)
 	}

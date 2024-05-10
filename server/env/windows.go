@@ -32,29 +32,29 @@ func (sys *windows) SpecificSetup() {
 
 	// Action keys for handling files
 	if !IsKeyPresent(keyEncryptName, fileKeysPath) {
-		CreateContextEntry(fileKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt", encryptIconPath)
+		CreateContextEntry(fileKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt", "%1", encryptIconPath)
 	}
 
 	if !IsKeyPresent(keyDecryptName, fileKeysPath) {
-		CreateContextEntry(fileKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt", decryptIconPath)
+		CreateContextEntry(fileKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt", "%1", decryptIconPath)
 	}
 
 	if !IsKeyPresent(keyAddKey, fileKeysPath) {
-		CreateContextEntry(fileKeysPath, keyAddKey, "Add key", execAppPath, "addkey", keyIconPath)
+		CreateContextEntry(fileKeysPath, keyAddKey, "Add key", execAppPath, "addkey", "%1", keyIconPath)
 	}
 
 	// Action keys for handling directories
 	if !IsKeyPresent(keyEncryptName, dirKeysPath) {
-		CreateContextEntry(dirKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt", encryptIconPath)
+		CreateContextEntry(dirKeysPath, keyEncryptName, "Encrypt source", execAppPath, "encrypt", "%1", encryptIconPath)
 	}
 
 	if !IsKeyPresent(keyDecryptName, dirKeysPath) {
-		CreateContextEntry(dirKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt", decryptIconPath)
+		CreateContextEntry(dirKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt", "%1", decryptIconPath)
 	}
 
 	// Action for generating a new key
 	if !IsKeyPresent(keyGenKey, genKeyPath) {
-		CreateContextEntry(genKeyPath, keyGenKey, "Generate key", execAppPath, "genkey", keyIconPath)
+		CreateContextEntry(genKeyPath, keyGenKey, "Generate key", execAppPath, "genkey", "%v", keyIconPath)
 	}
 }
 
@@ -70,7 +70,7 @@ func IsKeyPresent(keyName string, path string) bool {
 	return true
 }
 
-func CreateContextEntry(path string, contextName string, contextDesc string, appToExec string, action string, iconPath string) {
+func CreateContextEntry(path string, contextName string, contextDesc string, appToExec string, action string, exeParam string, iconPath string) {
 	log := utils.GetLogger()
 	encryptKeyHandler, _, err := registry.CreateKey(registry.CLASSES_ROOT, path+contextName,
 		registry.SET_VALUE|registry.CREATE_SUB_KEY)
@@ -97,7 +97,7 @@ func CreateContextEntry(path string, contextName string, contextDesc string, app
 	}
 	defer encryptSubKeyHandler.Close()
 
-	err = encryptSubKeyHandler.SetStringValue("", "\""+appToExec+"\""+" \""+action+"\" "+"\"%1\"")
+	err = encryptSubKeyHandler.SetStringValue("", "\""+appToExec+"\""+" \""+action+"\" "+"\"exeParam\"")
 	if err != nil {
 		log.Fatal(err)
 	}

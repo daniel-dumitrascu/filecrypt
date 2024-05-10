@@ -77,13 +77,13 @@ func (env *Environment) Setup() {
 
 	var handleGenKeyAction func(req *request.RequestData) = func(req *request.RequestData) {
 		keyname := keymgn.GenerateKeyName()
-		outputKeyPath := req.TargetPath + "/" + keyname
+		outputKeyPath := req.TargetPath + "\\" + keyname
 
 		log.Info("Gen key action was triggered: " + outputKeyPath)
 		key := crypt.GenKey()
 		encodedKey := base64.StdEncoding.EncodeToString(key)
 
-		if err := os.WriteFile(keyname, []byte(encodedKey), 0644); err != nil {
+		if err := os.WriteFile(outputKeyPath, []byte(encodedKey), 0644); err != nil {
 			log.Error("Cannot save key to file")
 			return
 		}

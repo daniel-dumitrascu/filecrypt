@@ -27,7 +27,7 @@ func (sys *windows) SpecificSetup() {
 	decryptIconPath := sys.GetBinDirPath() + "\\..\\resources\\decrypt.ico"
 	keyIconPath := sys.GetBinDirPath() + "\\..\\resources\\key.ico"
 	fileKeysPath := "*\\shell\\"
-	genKeyPath := "Directory\\Background\\shell"
+	genKeyPath := "Directory\\Background\\shell\\"
 	dirKeysPath := "Folder\\shell\\"
 
 	// Action keys for handling files

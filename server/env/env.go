@@ -1,6 +1,7 @@
 package env
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -74,10 +75,25 @@ func (env *Environment) Setup() {
 		osmanager.ChangeFilePermission(&outputKeyPath)
 	}
 
-	var handlers [3]func(req *request.RequestData)
+	var handleGenKeyAction func(req *request.RequestData) = func(req *request.RequestData) {
+		keyname := keymgn.GenerateKeyName()
+		outputKeyPath := req.TargetPath + "/" + keyname
+
+		log.Info("Gen key action was triggered: " + outputKeyPath)
+		key := crypt.GenKey()
+		encodedKey := base64.StdEncoding.EncodeToString(key)
+
+		if err := os.WriteFile(keyname, []byte(encodedKey), 0644); err != nil {
+			log.Error("Cannot save key to file")
+			return
+		}
+	}
+
+	var handlers [4]func(req *request.RequestData)
 	handlers[0] = handleEncryptAction
 	handlers[1] = handleDecryptAction
 	handlers[2] = handleAddKeyAction
+	handlers[3] = handleGenKeyAction
 
 	env.pool.Init(config.Max_goroutines_nr, &handlers)
 

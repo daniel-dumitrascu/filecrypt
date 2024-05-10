@@ -25,6 +25,8 @@ func main() {
 		reqData.ActionType = 1
 	} else if action == "addkey" {
 		reqData.ActionType = 2
+	} else if action == "genkey" {
+		reqData.ActionType = 3
 	} else {
 		log.Fatalf("Context-app has been called without a valid action")
 	}

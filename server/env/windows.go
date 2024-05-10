@@ -21,11 +21,13 @@ func (sys *windows) SpecificSetup() {
 	keyEncryptName := "FilecryptEncrypt"
 	keyDecryptName := "FilecryptDecrypt"
 	keyAddKey := "FilecryptAddKey"
+	keyGenKey := "FilecryptGenKey"
 	execAppPath := sys.GetBinDirPath() + "\\" + config.App_client_name + ".exe"
-	fileKeysPath := "*\\shell\\"
 	encryptIconPath := sys.GetBinDirPath() + "\\..\\resources\\encrypt.ico"
 	decryptIconPath := sys.GetBinDirPath() + "\\..\\resources\\decrypt.ico"
 	keyIconPath := sys.GetBinDirPath() + "\\..\\resources\\key.ico"
+	fileKeysPath := "*\\shell\\"
+	genKeyPath := "Directory\\Background\\shell"
 	dirKeysPath := "Folder\\shell\\"
 
 	// Action keys for handling files
@@ -48,6 +50,11 @@ func (sys *windows) SpecificSetup() {
 
 	if !IsKeyPresent(keyDecryptName, dirKeysPath) {
 		CreateContextEntry(dirKeysPath, keyDecryptName, "Decrypt source", execAppPath, "decrypt", decryptIconPath)
+	}
+
+	// Action for generating a new key
+	if !IsKeyPresent(keyGenKey, genKeyPath) {
+		CreateContextEntry(genKeyPath, keyGenKey, "Generate key", execAppPath, "genkey", keyIconPath)
 	}
 }
 

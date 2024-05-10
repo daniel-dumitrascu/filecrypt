@@ -13,7 +13,7 @@ import (
 )
 
 func LoadKey(installDir *string) []byte {
-	// Take the key that has the right name format --> install_key_[timestamp]
+	// Take the key that has the right name format --> key_[timestamp]
 	// having the latest timestamp
 	var keyMatches []string
 	walkFunc := func(path string, info os.FileInfo, err error) error {
@@ -23,7 +23,7 @@ func LoadKey(installDir *string) []byte {
 		if info.IsDir() {
 			return nil
 		}
-		if matched, err := filepath.Match("install_key_*", filepath.Base(path)); err != nil {
+		if matched, err := filepath.Match("key_*", filepath.Base(path)); err != nil {
 			return err
 		} else if matched {
 			keyMatches = append(keyMatches, path)
@@ -98,5 +98,5 @@ func InstallKey(inputKeyPath *string, outputKeyPath *string) string {
 }
 
 func GenerateKeyName() string {
-	return "install_key_" + strconv.FormatInt(time.Now().UnixMicro(), 10)
+	return "key_" + strconv.FormatInt(time.Now().UnixMicro(), 10)
 }

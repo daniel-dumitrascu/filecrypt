@@ -60,10 +60,15 @@ func (a Action) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(aux, start)
 }
 
-func (sys *linux) createAction(icon string, name string, ucaId string, command string, description string, patterns string) *Action {
+func (sys *linux) createAction(icon string, name string, ucaId string, command string,
+	description string, patterns string, applyOnDir bool) *Action {
+	applyOnDirValue := "false"
+	if applyOnDir == true {
+		applyOnDirValue = "true"
+	}
 	action := Action{Icon: icon, Name: name,
 		Uniqueid: ucaId, Command: command,
-		Description: description, Patterns: patterns, Directories: ""}
+		Description: description, Patterns: patterns, Directories: applyOnDirValue}
 	action.XMLName.Local = "action"
 	return &action
 }
@@ -97,25 +102,25 @@ func (sys *linux) SpecificSetup() {
 		icon := GetHomeDir() + "/.icons/encrypt.ico"
 		command := sys.GetBinDirPath() + "/" + config.App_client_name + " encrypt %f"
 		ucaId := strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
-		action := sys.createAction(icon, "Encrypt source", ucaId, command, "Encrypt source", "*")
+		action := sys.createAction(icon, "Encrypt source", ucaId, command, "Encrypt source", "*", true)
 		actions.Actions = append(actions.Actions, *action)
 
 		icon = GetHomeDir() + "/.icons/decrypt.ico"
 		command = sys.GetBinDirPath() + "/" + config.App_client_name + " decrypt %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
-		action = sys.createAction(icon, "Decrypt source", ucaId, command, "Decrypt source", "*")
+		action = sys.createAction(icon, "Decrypt source", ucaId, command, "Decrypt source", "*", true)
 		actions.Actions = append(actions.Actions, *action)
 
 		icon = GetHomeDir() + "/.icons/key.ico"
 		command = sys.GetBinDirPath() + "/" + config.App_client_name + " addkey %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
-		action = sys.createAction(icon, "Add key", ucaId, command, "Add the key that will be used to encrypt and decrypt", "*")
+		action = sys.createAction(icon, "Add key", ucaId, command, "Add the key that will be used to encrypt and decrypt", "*", false)
 		actions.Actions = append(actions.Actions, *action)
 
 		icon = GetHomeDir() + "/.icons/key.ico"
 		command = sys.GetBinDirPath() + "/" + config.App_client_name + " genkey %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
-		action = sys.createAction(icon, "Generate key", ucaId, command, "Generate a new symetric key", "*")
+		action = sys.createAction(icon, "Generate key", ucaId, command, "Generate a new symetric key", "*", false)
 		actions.Actions = append(actions.Actions, *action)
 
 		updatedUcaBytes, err := xml.MarshalIndent(actions, " ", "	")

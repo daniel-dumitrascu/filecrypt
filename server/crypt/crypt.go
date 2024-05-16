@@ -159,19 +159,9 @@ func EncryptDir(dirpath string, outputpath string, key []byte) error {
 		return EncryptFile(dirpath, outputpath, key)
 	}
 
-	dirname := filepath.Base(dirpath)
-	newEncryptPath := outputpath + "/" + dirname + "_encrypt"
-	if _, err := os.Stat(newEncryptPath); os.IsNotExist(err) {
-		err := os.Mkdir(newEncryptPath, os.ModeDir)
-		if err != nil {
-			log.Error("Error creating the new dir that will store the encrypted files: ", err)
-			return err
-		}
-	}
-
 	var encryptNode func(fpath string, dirinfo fs.DirEntry, err error) error = func(fpath string, dirinfo fs.DirEntry, err error) error {
 		relfpath, _ := filepath.Rel(dirpath, fpath)
-		newfpath := newEncryptPath + "/" + relfpath
+		newfpath := outputpath + "/" + relfpath
 
 		if dirinfo.IsDir() {
 			if _, err := os.Stat(newfpath); os.IsNotExist(err) {
@@ -206,19 +196,9 @@ func DecryptDir(dirpath string, outputpath string, key []byte) error {
 		return DecryptFile(dirpath, outputpath, key)
 	}
 
-	dirname := filepath.Base(dirpath)
-	newDecryptPath := outputpath + "/" + dirname + "_decrypt"
-	if _, err := os.Stat(newDecryptPath); os.IsNotExist(err) {
-		err := os.Mkdir(newDecryptPath, os.ModeDir)
-		if err != nil {
-			log.Error("Error creating the new dir that will store the decrypted files: ", err)
-			return err
-		}
-	}
-
 	var decryptNode func(fpath string, dirinfo fs.DirEntry, err error) error = func(fpath string, dirinfo fs.DirEntry, err error) error {
 		relfpath, _ := filepath.Rel(dirpath, fpath)
-		newfpath := newDecryptPath + "/" + relfpath
+		newfpath := outputpath + "/" + relfpath
 
 		if dirinfo.IsDir() {
 			if _, err := os.Stat(newfpath); os.IsNotExist(err) {

@@ -81,10 +81,10 @@ func (env *Environment) Setup() {
 	}
 
 	var handleGenKeyAction func(req *request.RequestData) = func(req *request.RequestData) {
-		var outputKeyPath string
-		log.Info("Initial path: ", req.TargetPath)
-		if isdir, _ := utils.IsDir(req.TargetPath); !isdir {
-			outputKeyPath = filepath.Dir(req.TargetPath)
+		outputKeyPath := req.TargetPath
+		log.Info("Initial path: ", outputKeyPath)
+		if isdir, _ := utils.IsDir(outputKeyPath); !isdir {
+			outputKeyPath = filepath.Dir(outputKeyPath)
 		}
 
 		keyname := keymgn.GenerateKeyName()

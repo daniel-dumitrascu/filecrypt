@@ -82,12 +82,15 @@ func (env *Environment) Setup() {
 
 	var handleGenKeyAction func(req *request.RequestData) = func(req *request.RequestData) {
 		var outputKeyPath string
+		log.Info("Initial path: ", req.TargetPath)
 		if isdir, _ := utils.IsDir(req.TargetPath); !isdir {
 			outputKeyPath = filepath.Dir(req.TargetPath)
 		}
 
 		keyname := keymgn.GenerateKeyName()
 		outputKeyPath = outputKeyPath + "\\" + keyname
+
+		log.Info("Calculated path: ", outputKeyPath)
 
 		log.Info("Gen key action was triggered: " + outputKeyPath)
 		key := crypt.GenKey()

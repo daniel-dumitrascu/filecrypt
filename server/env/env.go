@@ -88,7 +88,7 @@ func (env *Environment) Setup() {
 		}
 
 		keyname := keymgn.GenerateKeyName()
-		outputKeyPath = outputKeyPath + "\\" + keyname
+		outputKeyPath = outputKeyPath + "/" + keyname
 
 		log.Info("Calculated path: ", outputKeyPath)
 

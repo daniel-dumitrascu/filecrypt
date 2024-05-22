@@ -7,5 +7,5 @@ type Crypto interface {
 	EncryptDir(dirpath string, outputpath string, keypath string) error
 	DecryptDir(dirpath string, outputpath string, keypath string) error
 
-	GenKey() []byte
+	GenKey() string
 }

@@ -61,14 +61,15 @@ func (c CryptoAesGcm) DecryptDir(dirpath string, outputpath string, keypath stri
 	return decryptDir(dirpath, outputpath, key)
 }
 
-func (c CryptoAesGcm) GenKey() []byte {
+func (c CryptoAesGcm) GenKey() string {
 	// Generate a random symmetric key for HMAC and AES
 	key := make([]byte, key32size)
 	if _, err := io.ReadFull(rand.Reader, key); err != nil {
 		fmt.Println("Error generating symmetric key: ", err)
-		return nil
+		return ""
 	}
-	return key
+
+	return base64.StdEncoding.EncodeToString(key)
 }
 
 func loadAndDecodeKey(keypath string) ([]byte, error) {

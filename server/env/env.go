@@ -66,6 +66,11 @@ func (env *Environment) Setup() {
 
 	var handleAddKeyAction func(req *request.RequestData) = func(req *request.RequestData) {
 		inputKeyPath := req.TargetPath
+		if isdir, _ := utils.IsDir(inputKeyPath); isdir {
+			log.Error("Target path is a directory.")
+			return
+		}
+
 		outputKeyPath := osmanager.GetKeysDirPath() + "/" + keymgn.GenerateKeyName()
 
 		log.Info("Add key action was triggered: " + inputKeyPath)
@@ -76,8 +81,16 @@ func (env *Environment) Setup() {
 	}
 
 	var handleGenKeyAction func(req *request.RequestData) = func(req *request.RequestData) {
+		outputKeyPath := req.TargetPath
+		log.Info("Initial path: ", outputKeyPath)
+		if isdir, _ := utils.IsDir(outputKeyPath); !isdir {
+			outputKeyPath = filepath.Dir(outputKeyPath)
+		}
+
 		keyname := keymgn.GenerateKeyName()
-		outputKeyPath := req.TargetPath + "\\" + keyname
+		outputKeyPath = outputKeyPath + "/" + keyname
+
+		log.Info("Calculated path: ", outputKeyPath)
 
 		log.Info("Gen key action was triggered: " + outputKeyPath)
 		key := crypt.GenKey()

@@ -42,7 +42,8 @@ type Actions struct {
 	Actions []Action `xml:"action"`
 }
 
-func (sys *linux) createAction(icon string, name string, ucaId string, command string, description string, patterns string) *Action {
+func (sys *linux) createAction(icon string, name string, ucaId string, command string,
+	description string, patterns string) *Action {
 	action := Action{Icon: icon, Name: name,
 		Uniqueid: ucaId, Command: command,
 		Description: description, Patterns: patterns}
@@ -92,6 +93,12 @@ func (sys *linux) SpecificSetup() {
 		command = sys.GetBinDirPath() + "/" + config.App_client_name + " addkey %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action = sys.createAction(icon, "Add key", ucaId, command, "Add the key that will be used to encrypt and decrypt", "*")
+		actions.Actions = append(actions.Actions, *action)
+
+		icon = GetHomeDir() + "/.icons/key.ico"
+		command = sys.GetBinDirPath() + "/" + config.App_client_name + " genkey %f"
+		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
+		action = sys.createAction(icon, "Generate key", ucaId, command, "Generate a new symetric key", "*")
 		actions.Actions = append(actions.Actions, *action)
 
 		updatedUcaBytes, err := xml.MarshalIndent(actions, " ", "	")

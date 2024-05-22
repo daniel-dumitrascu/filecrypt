@@ -1,11 +1,11 @@
 package crypto
 
 import (
-	"crypt/utils"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"fmt"
 	"io"
 	"io/fs"
 	"math"
@@ -18,59 +18,54 @@ type CryptoAesGcm struct {
 }
 
 func (c CryptoAesGcm) EncryptFile(filepath string, outputpath string, keypath string) error {
-	log := utils.GetLogger()
-
 	// Load key if it exists
 	key, err := loadAndDecodeKey(keypath)
 	if err != nil {
-		log.Error("Issue when loading the key: ", err)
+		fmt.Println("Issue when loading the key.")
+		return err
 	}
 
 	return encryptFile(filepath, outputpath, key)
 }
 
 func (c CryptoAesGcm) DecryptFile(filepath string, outputpath string, keypath string) error {
-	log := utils.GetLogger()
-
 	// Load key if it exists
 	key, err := loadAndDecodeKey(keypath)
 	if err != nil {
-		log.Error("Issue when loading the key: ", err)
+		fmt.Println("Issue when loading the key.")
+		return err
 	}
 
 	return decryptFile(filepath, outputpath, key)
 }
 
 func (c CryptoAesGcm) EncryptDir(dirpath string, outputpath string, keypath string) error {
-	log := utils.GetLogger()
-
 	// Load key if it exists
 	key, err := loadAndDecodeKey(keypath)
 	if err != nil {
-		log.Error("Issue when loading the key: ", err)
+		fmt.Println("Issue when loading the key.")
+		return err
 	}
 
 	return encryptDir(dirpath, outputpath, key)
 }
 
 func (c CryptoAesGcm) DecryptDir(dirpath string, outputpath string, keypath string) error {
-	log := utils.GetLogger()
-
 	// Load key if it exists
 	key, err := loadAndDecodeKey(keypath)
 	if err != nil {
-		log.Error("Issue when loading the key: ", err)
+		fmt.Println("Issue when loading the key.")
+		return err
 	}
 
 	return decryptDir(dirpath, outputpath, key)
 }
 
 func (c CryptoAesGcm) GenKey() []byte {
-	log := utils.GetLogger()
 	// Generate a random symmetric key for HMAC and AES
 	key := make([]byte, key32size)
 	if _, err := io.ReadFull(rand.Reader, key); err != nil {
-		log.Error("Error generating symmetric key: ", err)
+		fmt.Println("Error generating symmetric key: ", err)
 		return nil
 	}
 	return key
@@ -91,19 +86,17 @@ func loadAndDecodeKey(keypath string) ([]byte, error) {
 }
 
 func encryptFile(filepath string, outputpath string, key []byte) error {
-	log := utils.GetLogger()
-
 	// Load cipher
 	aesgcm, nonce, err := loadCipherForEncryption(key)
 	if err != nil {
-		log.Error("Error when loading the cipher: ", err)
+		fmt.Println("Error when loading the cipher.")
 		return err
 	}
 
 	// Open the file that will be encrypted
 	sourceFileHandler, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
 	if err != nil {
-		log.Error("Error opening the target file: ", err)
+		fmt.Println("Error opening the target file.")
 		return err
 	}
 	defer sourceFileHandler.Close()
@@ -112,7 +105,7 @@ func encryptFile(filepath string, outputpath string, key []byte) error {
 	secretFilepath := getEncryptedFilepath(filepath, outputpath)
 	destFileHandler, err := os.OpenFile(secretFilepath, os.O_APPEND|os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Error("Error opening the destination file: ", err)
+		fmt.Println("Error opening the destination file.")
 		return err
 	}
 	defer destFileHandler.Close()
@@ -120,7 +113,7 @@ func encryptFile(filepath string, outputpath string, key []byte) error {
 	// Calculate the number of chunk data based on the chunk size
 	fileSize, err := getFileSize(filepath)
 	if err != nil {
-		log.Error("Error getting the file size of the target file: ", err)
+		fmt.Println("Error getting the file size of the target file.")
 		return err
 	}
 
@@ -131,22 +124,22 @@ func encryptFile(filepath string, outputpath string, key []byte) error {
 	// Start reading the source file
 	readSize, err := sourceFileHandler.Read(chunckBuffer)
 	if err != nil {
-		log.Error("Error reading file: ", err)
+		fmt.Println("Error reading file.")
 		return err
 	}
 
 	chunkIndex := 1
 	for readSize > 0 {
 		encryptedChunck := encryptDataBlock(chunckBuffer[:readSize], aesgcm, nonce)
-		log.Info("Encrypting data chunk", chunkIndex, " of ", chunckNr, " (read ", len(chunckBuffer), " bytes) (encrypted ", len(encryptedChunck), " bytes)")
+		fmt.Println("Encrypting data chunk", chunkIndex, " of ", chunckNr, " (read ", len(chunckBuffer), " bytes) (encrypted ", len(encryptedChunck), " bytes)")
 		chunkIndex++
 
 		if _, err = destFileHandler.Write(encryptedChunck); err != nil {
-			log.Error("Error writing encrypted data: ", err)
+			fmt.Println("Error writing encrypted data: ", err)
 			return err
 		}
 		if err = destFileHandler.Sync(); err != nil {
-			log.Error("Error syncking data to file: ", err)
+			fmt.Println("Error syncking data to file: ", err)
 			return err
 		}
 
@@ -157,19 +150,17 @@ func encryptFile(filepath string, outputpath string, key []byte) error {
 }
 
 func decryptFile(filepath string, outputpath string, key []byte) error {
-	log := utils.GetLogger()
-
 	// Load cipher
 	aesgcm, err := loadCipherForDecryption(key)
 	if err != nil {
-		log.Error("Error when loading the cipher: ", err)
+		fmt.Println("Error when loading the cipher.")
 		return err
 	}
 
 	// Open the file that will be decrypted
 	sourceFileHandler, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
 	if err != nil {
-		log.Error("Error opening the target file: ", err)
+		fmt.Println("Error opening the target file.")
 		return err
 	}
 	defer sourceFileHandler.Close()
@@ -178,14 +169,14 @@ func decryptFile(filepath string, outputpath string, key []byte) error {
 	clearFilepath := getDecryptedFilepath(filepath, outputpath)
 	destFileHandler, err := os.OpenFile(clearFilepath, os.O_APPEND|os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Error("Error opening the destination file: ", err)
+		fmt.Println("Error opening the destination file.")
 		return err
 	}
 	defer destFileHandler.Close()
 
 	fileSize, err := getFileSize(filepath)
 	if err != nil {
-		log.Error("Error getting the file size of the target file: ", err)
+		fmt.Println("Error getting the file size of the target file.")
 		return err
 	}
 
@@ -195,7 +186,7 @@ func decryptFile(filepath string, outputpath string, key []byte) error {
 	chunckBuffer := make([]byte, bytesToRead)
 	dataReadSize, err := sourceFileHandler.Read(chunckBuffer)
 	if err != nil {
-		log.Error("Error reading file: ", err)
+		fmt.Println("Error reading file.")
 		return err
 	}
 	chunckIndex := 1
@@ -203,18 +194,18 @@ func decryptFile(filepath string, outputpath string, key []byte) error {
 	for dataReadSize > 0 {
 		decryptedChunck, err := decodeDataBlock(chunckBuffer[:dataReadSize], aesgcm)
 		if err != nil {
-			log.Error("Error during data chunck decryption: ", err)
+			fmt.Println("Error during data chunck decryption.")
 			return err
 		}
-		log.Info("Decrypting data chunk", chunckIndex, " of ", chunckNr, " (read ", len(chunckBuffer), " bytes) (decrypted ", len(decryptedChunck), " bytes)")
+		fmt.Println("Decrypting data chunk", chunckIndex, " of ", chunckNr, " (read ", len(chunckBuffer), " bytes) (decrypted ", len(decryptedChunck), " bytes)")
 		chunckIndex++
 
 		if _, err = destFileHandler.Write(decryptedChunck); err != nil {
-			log.Error("Error writing decrypted data: ", err)
+			fmt.Println("Error writing decrypted data.")
 			return err
 		}
 		if err = destFileHandler.Sync(); err != nil {
-			log.Error("Error syncking data to file: ", err)
+			fmt.Println("Error syncking data to file.")
 			return err
 		}
 
@@ -225,10 +216,9 @@ func decryptFile(filepath string, outputpath string, key []byte) error {
 }
 
 func encryptDir(dirpath string, outputpath string, key []byte) error {
-	log := utils.GetLogger()
 	info, err := os.Stat(dirpath)
 	if err != nil {
-		log.Error("Error getting the info stats: ", err)
+		fmt.Println("Error getting the info stats.")
 		return err
 	}
 
@@ -244,7 +234,7 @@ func encryptDir(dirpath string, outputpath string, key []byte) error {
 			if _, err := os.Stat(newfpath); os.IsNotExist(err) {
 				err := os.MkdirAll(newfpath, os.ModePerm)
 				if err != nil {
-					log.Error("Error creating the new dir path: ", err)
+					fmt.Println("Error creating the new dir path.")
 					return err
 				}
 			}
@@ -262,10 +252,9 @@ func encryptDir(dirpath string, outputpath string, key []byte) error {
 }
 
 func decryptDir(dirpath string, outputpath string, key []byte) error {
-	log := utils.GetLogger()
 	info, err := os.Stat(dirpath)
 	if err != nil {
-		log.Error("Error getting the info stats: ", err)
+		fmt.Println("Error getting the info stats.")
 		return err
 	}
 
@@ -281,7 +270,7 @@ func decryptDir(dirpath string, outputpath string, key []byte) error {
 			if _, err := os.Stat(newfpath); os.IsNotExist(err) {
 				err := os.MkdirAll(newfpath, os.ModePerm)
 				if err != nil {
-					log.Error("Error creating the new dir path: ", err)
+					fmt.Println("Error creating the new dir path.")
 					return err
 				}
 			}

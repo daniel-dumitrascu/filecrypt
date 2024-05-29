@@ -1,7 +1,6 @@
 package keymgn
 
 import (
-	"encoding/base64"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,7 +11,7 @@ import (
 	"time"
 )
 
-func LoadKey(installDir *string) []byte {
+func GetLatestKey(installDir *string) string {
 	// Take the key that has the right name format --> key_[timestamp]
 	// having the latest timestamp
 	var keyMatches []string
@@ -35,12 +34,12 @@ func LoadKey(installDir *string) []byte {
 
 	if err := filepath.Walk(*installDir, walkFunc); err != nil {
 		log.Error("Error when trying to load the key: %s", err)
-		return nil
+		return ""
 	}
 
 	if len(keyMatches) == 0 {
 		log.Error("There is no key found to load")
-		return nil
+		return ""
 	}
 
 	sort.Slice(keyMatches, func(i int, j int) bool {
@@ -54,19 +53,7 @@ func LoadKey(installDir *string) []byte {
 	})
 
 	log.Info("Loaded key: " + keyMatches[0])
-	key, err := os.ReadFile(keyMatches[0])
-	if err != nil {
-		log.Error("Issue reading the key")
-		return nil
-	}
-
-	key, err = base64.StdEncoding.DecodeString(string(key))
-	if err != nil {
-		log.Error("Issue decoding the key")
-		return nil
-	}
-
-	return key
+	return keyMatches[0]
 }
 
 func InstallKey(inputKeyPath *string, outputKeyPath *string) string {

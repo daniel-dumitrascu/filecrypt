@@ -6,9 +6,9 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"server/config"
-	"server/crypt"
 	"server/keymgn"
 	"server/request"
 	"server/utils"
@@ -16,8 +16,8 @@ import (
 )
 
 type Environment struct {
-	loadedKey []byte
-	pool      workerpool.Pool
+	key  string
+	pool workerpool.Pool
 }
 
 func (env *Environment) Setup() {
@@ -26,7 +26,12 @@ func (env *Environment) Setup() {
 	osmanager := GetOsManager()
 	osmanager.SpecificSetup()
 	var installKeyPath = osmanager.GetKeysDirPath()
-	env.loadedKey = keymgn.LoadKey(&installKeyPath)
+	env.key = keymgn.GetLatestKey(&installKeyPath)
+	toolPath := osmanager.GetBinDirPath() + "/" + config.CRYPT_TOOL_NAME
+
+	if config.CURRENT_PLATFORM == config.PLATFORM_WIN {
+		toolPath += ".exe"
+	}
 
 	var handleEncryptAction func(req *request.RequestData) = func(req *request.RequestData) {
 		inputPath := req.TargetPath
@@ -38,8 +43,8 @@ func (env *Environment) Setup() {
 			return
 		}
 
-		if len(env.loadedKey) > 0 {
-			crypt.EncryptDir(inputPath, outputPath, env.loadedKey)
+		if len(env.key) > 0 {
+			callToolEncrypt(&toolPath, &inputPath, &outputPath, &env.key)
 			log.Info("Successfully encrypting the file: " + inputPath)
 		} else {
 			log.Error("Cannot encrypt because no key has been found")
@@ -56,8 +61,8 @@ func (env *Environment) Setup() {
 			return
 		}
 
-		if len(env.loadedKey) > 0 {
-			crypt.DecryptDir(inputPath, outputPath, env.loadedKey)
+		if len(env.key) > 0 {
+			callToolDecrypt(&toolPath, &inputPath, &outputPath, &env.key)
 			log.Info("Successfully decrypting the file: " + inputPath)
 		} else {
 			log.Error("Cannot decrypt because no key has been found")
@@ -76,7 +81,7 @@ func (env *Environment) Setup() {
 		log.Info("Add key action was triggered: " + inputKeyPath)
 
 		keymgn.InstallKey(&inputKeyPath, &outputKeyPath)
-		env.loadedKey = keymgn.LoadKey(&outputKeyPath)
+		env.key = keymgn.GetLatestKey(&outputKeyPath)
 		osmanager.ChangeFilePermission(&outputKeyPath)
 	}
 
@@ -93,9 +98,12 @@ func (env *Environment) Setup() {
 		log.Info("Calculated path: ", outputKeyPath)
 
 		log.Info("Gen key action was triggered: " + outputKeyPath)
-		key := crypt.GenKey()
-		encodedKey := base64.StdEncoding.EncodeToString(key)
+		key := callToolGenKey(&toolPath)
+		if key == nil {
+			return
+		}
 
+		encodedKey := base64.StdEncoding.EncodeToString(key)
 		if err := os.WriteFile(outputKeyPath, []byte(encodedKey), 0644); err != nil {
 			log.Error("Cannot save key to file")
 			return
@@ -108,7 +116,7 @@ func (env *Environment) Setup() {
 	handlers[2] = handleAddKeyAction
 	handlers[3] = handleGenKeyAction
 
-	env.pool.Init(config.Max_goroutines_nr, &handlers)
+	env.pool.Init(config.MAX_GOROUTINES_NR, &handlers)
 
 	// Endpoints handlers
 	http.HandleFunc("/process", env.processHandler)
@@ -131,13 +139,47 @@ func (env *Environment) processHandler(w http.ResponseWriter, req *http.Request)
 
 	log := utils.GetLogger()
 
-	if reqData.ActionType < 0 || reqData.ActionType > config.Max_handlers_nr {
+	if reqData.ActionType < 0 || reqData.ActionType > config.MAX_HANDLERS_NR {
 		log.Info("The action type %d is invalid. This should be between 0 and %d",
-			reqData.ActionType, config.Max_handlers_nr-1)
+			reqData.ActionType, config.MAX_HANDLERS_NR-1)
 		return
 	}
 
 	env.pool.AddTask(&reqData)
+}
+
+func callToolGenKey(toolPath *string) []byte {
+	c := exec.Command(*toolPath, "genkey")
+
+	log := utils.GetLogger()
+	out, err := c.Output()
+
+	if err != nil {
+		log.Error("Error when generating a new key: ", err)
+		log.Error("Command output: ", out)
+		return nil
+	}
+
+	return out
+}
+
+func callToolDecrypt(toolPath *string, inputPath *string, outputPath *string, keyPath *string) {
+	callCryptTool(toolPath, inputPath, outputPath, keyPath, "decrypt")
+}
+
+func callToolEncrypt(toolPath *string, inputPath *string, outputPath *string, keyPath *string) {
+	callCryptTool(toolPath, inputPath, outputPath, keyPath, "encrypt")
+}
+
+func callCryptTool(toolPath *string, inputPath *string, outputPath *string, keyPath *string, action string) {
+	c := exec.Command(*toolPath, action, *keyPath, *inputPath, *outputPath)
+
+	log := utils.GetLogger()
+
+	if out, err := c.Output(); err != nil {
+		log.Error("Error when encrypting: ", err)
+		log.Error("Command output: ", out)
+	}
 }
 
 func ComputeOutputPath(inputPath *string) (string, error) {

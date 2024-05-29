@@ -11,7 +11,7 @@ type Pool struct {
 }
 
 func (p *Pool) Init(nrRoutines int, handlers *[4]func(req *request.RequestData)) {
-	p.tasks = make(chan *request.RequestData, config.Tasks_channel_size)
+	p.tasks = make(chan *request.RequestData, config.TASKS_CHANNEL_SIZE)
 
 	for id := 1; id <= nrRoutines; id++ {
 		go worker(id, p.tasks, handlers)

@@ -18,11 +18,13 @@ type windows struct {
 }
 
 func (sys *windows) SpecificSetup() {
+	config.CURRENT_PLATFORM = config.PLATFORM_WIN
+
 	keyEncryptName := "FilecryptEncrypt"
 	keyDecryptName := "FilecryptDecrypt"
 	keyAddKey := "FilecryptAddKey"
 	keyGenKey := "FilecryptGenKey"
-	execAppPath := sys.GetBinDirPath() + "\\" + config.App_client_name + ".exe"
+	execAppPath := sys.GetBinDirPath() + "\\" + config.APP_CLIENT_NAME + ".exe"
 	encryptIconPath := sys.GetBinDirPath() + "\\..\\resources\\encrypt.ico"
 	decryptIconPath := sys.GetBinDirPath() + "\\..\\resources\\decrypt.ico"
 	keyIconPath := sys.GetBinDirPath() + "\\..\\resources\\key.ico"
@@ -118,7 +120,7 @@ func (sys *windows) GetInterpretor() string {
 }
 
 func (sys *windows) GetBinDirPath() string {
-	return filepath.Join("C:/Program Files/" + config.App_generic_name + "/bin")
+	return filepath.Join("C:/Program Files/" + config.APP_GENERIC_NAME + "/bin")
 }
 
 func (sys *windows) ChangeFilePermission(keyPath *string) {
@@ -127,7 +129,7 @@ func (sys *windows) ChangeFilePermission(keyPath *string) {
 
 func (sys *windows) GetKeysDirPath() string {
 	homePath := GetHomeDir()
-	return filepath.Join(homePath, "/"+config.App_generic_name+"/keys")
+	return filepath.Join(homePath, "/"+config.APP_GENERIC_NAME+"/keys")
 }
 
 func GetOsManager() system {

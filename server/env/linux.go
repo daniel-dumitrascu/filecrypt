@@ -52,6 +52,8 @@ func (sys *linux) createAction(icon string, name string, ucaId string, command s
 }
 
 func (sys *linux) SpecificSetup() {
+	config.CURRENT_PLATFORM = config.PLATFORM_LINUX
+
 	log := utils.GetLogger()
 	//Setup patch to uca.xml
 	ucaDirPath := GetHomeDir() + "/.config/Thunar/uca.xml"

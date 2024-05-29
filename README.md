@@ -53,7 +53,7 @@ To solve this I created a client-server system where the client sends requests l
 
 ### Built With
 
-This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
+This section lists the major frameworks/libraries used to build and run the project.
 
 * [![Next][Next.js]][Next-url]
 * [![React][React.js]][React-url]

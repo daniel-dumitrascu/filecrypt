@@ -1,10 +1,12 @@
 # Detect the operating system
 ifeq ($(OS),Windows_NT)
+    SEPARATOR := \\
     EXE := .exe
-	RMCMD := del
+    RMCMD := del
 else
+    SEPARATOR := /
     EXE :=
-	RMCMD := rm -f
+    RMCMD := rm -f
 endif
 
 # Define the Go command
@@ -21,10 +23,10 @@ SERVER_BIN := server$(EXE)
 TOOL_BIN := crypt$(EXE)
 
 # Define the executables with their paths
-CLIENT := $(CLIENT_DIR)\$(CLIENT_BIN)
-SERVER := $(SERVER_DIR)\$(SERVER_BIN)
-SERVER_BIN_DIR := $(SERVER_DIR)\bin
-CRYPT := $(SERVER_BIN_DIR)\$(TOOL_BIN) 
+CLIENT := $(CLIENT_DIR)$(SEPARATOR)$(CLIENT_BIN)
+SERVER := $(SERVER_DIR)$(SEPARATOR)$(SERVER_BIN)
+SERVER_BIN_DIR := $(SERVER_DIR)$(SEPARATOR)bin
+CRYPT := $(SERVER_BIN_DIR)$(SEPARATOR)$(TOOL_BIN)
 
 # Default target to build all executables
 .PHONY: all

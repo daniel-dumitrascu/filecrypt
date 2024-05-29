@@ -53,14 +53,7 @@ To solve this I created a client-server system where the client sends requests l
 
 ### Built With
 
-This section lists the major frameworks/libraries used to build and run the project.
-
-
-[Go-url]: 
-[Go-shield]: 
-
-
-<p align="center">
+<p align="left">
   <a href="https://go.dev/">
     <img src="https://img.shields.io/badge/Go-35495E?style=plastic&logo=go&logoColor=69d6e4" target="_blank" />
   </a>
@@ -68,14 +61,6 @@ This section lists the major frameworks/libraries used to build and run the proj
     <img src="https://img.shields.io/badge/Make-0769AD?style=plastic&logo=gnu&logoColor=white" target="_blank" />
   </a>
 </p>
-
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
 
 
 <!-- GETTING STARTED -->

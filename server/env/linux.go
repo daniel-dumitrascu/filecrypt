@@ -74,31 +74,31 @@ func (sys *linux) SpecificSetup() {
 
 	ucaFile.Close()
 
-	foundIdx := slices.IndexFunc(actions.Actions, func(action Action) bool { return strings.Contains(action.Command, config.App_client_name) })
+	foundIdx := slices.IndexFunc(actions.Actions, func(action Action) bool { return strings.Contains(action.Command, config.APP_CLIENT_NAME) })
 	if foundIdx == -1 {
 		// Client app entry was not found, we will add it at the end of the uca.xml
 		log.Info("Menu entries weren't found. They will be added now!")
 
 		icon := GetHomeDir() + "/.icons/encrypt.ico"
-		command := sys.GetBinDirPath() + "/" + config.App_client_name + " encrypt %f"
+		command := sys.GetBinDirPath() + "/" + config.APP_CLIENT_NAME + " encrypt %f"
 		ucaId := strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action := sys.createAction(icon, "Encrypt source", ucaId, command, "Encrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
 		icon = GetHomeDir() + "/.icons/decrypt.ico"
-		command = sys.GetBinDirPath() + "/" + config.App_client_name + " decrypt %f"
+		command = sys.GetBinDirPath() + "/" + config.APP_CLIENT_NAME + " decrypt %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action = sys.createAction(icon, "Decrypt source", ucaId, command, "Decrypt source", "*")
 		actions.Actions = append(actions.Actions, *action)
 
 		icon = GetHomeDir() + "/.icons/key.ico"
-		command = sys.GetBinDirPath() + "/" + config.App_client_name + " addkey %f"
+		command = sys.GetBinDirPath() + "/" + config.APP_CLIENT_NAME + " addkey %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action = sys.createAction(icon, "Add key", ucaId, command, "Add the key that will be used to encrypt and decrypt", "*")
 		actions.Actions = append(actions.Actions, *action)
 
 		icon = GetHomeDir() + "/.icons/key.ico"
-		command = sys.GetBinDirPath() + "/" + config.App_client_name + " genkey %f"
+		command = sys.GetBinDirPath() + "/" + config.APP_CLIENT_NAME + " genkey %f"
 		ucaId = strconv.FormatInt(time.Now().UnixMicro(), 10) + "-" + strconv.Itoa(rand.Intn(5)+1)
 		action = sys.createAction(icon, "Generate key", ucaId, command, "Generate a new symetric key", "*")
 		actions.Actions = append(actions.Actions, *action)
@@ -156,7 +156,7 @@ func (sys *linux) ChangeFilePermission(keyPath *string) {
 
 func (sys *linux) GetKeysDirPath() string {
 	homePath := GetHomeDir()
-	return filepath.Join(homePath, "/."+config.App_generic_name)
+	return filepath.Join(homePath, "/."+config.APP_GENERIC_NAME)
 }
 
 func GetOsManager() system {

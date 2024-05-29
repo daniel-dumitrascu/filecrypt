@@ -30,8 +30,8 @@
       <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation_win">Installation on Windows 11</a></li>
-        <li><a href="#installation_linux">Installation on Linux (Manjaro with xfce)</a></li>
+        <li><a href="#installation-on-windows-11">Installation on Windows 11</a></li>
+        <li><a href="#installation-on-linux-manjaro-with-xfce">Installation on Linux (Manjaro with xfce)</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>

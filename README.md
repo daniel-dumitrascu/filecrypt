@@ -35,7 +35,7 @@
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#contact">Author</a></li>
+    <li><a href="#author">Author</a></li>
     <li><a href="#license">License</a></li>
   </ol>
 </details>

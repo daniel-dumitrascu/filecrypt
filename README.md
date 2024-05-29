@@ -87,7 +87,7 @@ Prerequisites: makefile
   npm install npm@latest -g
   ```
 
-### Installation
+### Installation on Windows 11
 
 _Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
 
@@ -104,6 +104,11 @@ _Below is an example of how you can instruct your audience on installing and set
    ```js
    const API_KEY = 'ENTER YOUR API';
    ```
+   
+
+### Installation on Linux (Manjaro with xfce)
+
+_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
    
 
 <!-- USAGE EXAMPLES -->

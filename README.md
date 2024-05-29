@@ -5,7 +5,7 @@
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">FileCrypt app</h3>
+  <h1 align="center">FileCrypt</h1>
 
   <p align="center">
     Encrypting and decrypting files in a tree based directory using symmetric cryptography for Linux and Windows!

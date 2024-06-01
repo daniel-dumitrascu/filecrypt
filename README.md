@@ -27,11 +27,17 @@
       </ul>
     </li>
     <li>
-      <a href="#getting-started">Getting Started</a>
+      <a href="#getting-started">Building</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation-on-windows-11">Installation on Windows 11</a></li>
-        <li><a href="#installation-on-linux-manjaro-with-xfce">Installation on Linux (Manjaro with xfce)</a></li>
+        <li><a href="#installation-on-windows-11">Windows</a></li>
+        <li><a href="#installation-on-linux-manjaro-with-xfce">Linux</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#getting-started">Installing</a>
+      <ul>
+        <li><a href="#installation-on-windows-11">Windows 11</a></li>
+        <li><a href="#installation-on-linux-manjaro-with-xfce">Linux (Manjaro with xfce)</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
@@ -69,24 +75,16 @@ To solve this I created a client-server system where the client sends requests l
 ??? This is an example of how you may give instructions on setting up your project locally.
 To get a local copy up and running follow these simple example steps.
 
-### Prerequisites
-
-??? This is an example of how to list things you need to use the software and how to install them.
-Prerequisites: makefile
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
-
 ### Installation on Windows 11
 
-1. Clone the repo
+1. Install make 
+2. Clone the repo
    ```sh
    git clone https://github.com/daniel-dumitrascu/filecrypt.git
    ```
-2. Open a command prompt by running it as administrator. This is needed because modifications to registry will be made. 
-3. Go into [filecrypt repo]\installers\windows
-4. Run `install.bat`
+3. Open a command prompt by running it as administrator. This is needed because modifications to registry will be made. 
+4. Go into [filecrypt repo]\installers\windows
+5. Run `install.bat`
    
 
 ### Installation on Linux (Manjaro with xfce)

@@ -95,9 +95,12 @@ Supported versions: Manjaro with xfce
    
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+In order to start using the app you need to load a symetric key used for encryption and decryption. 
+If you don't have a previous generated key you can generate a new one by right clicking anywhere in a folder or desktop and select `Generate key`.
+Once you have the key, load it by right clicking on it and selecting `Add key`.
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+Now, encrypt files or directories (_be aware that on directories the action is recursive_) by right clicking on the file or directory and selecting `Encrypt source`.
+Once the action terminates you will have, in the same directory ar the source file/dir, the encrypted file or directory containg now the encrypted files.  
 
 
 ## Author

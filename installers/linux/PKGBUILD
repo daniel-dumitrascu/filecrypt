@@ -1,0 +1,50 @@
+# PKGBUILD
+# Maintainer: daniel.dumitrascu.dev@gmail.com
+
+pkgname=filecrypt
+pkgver=1.0
+pkgrel=1
+pkgdesc="Easy encrypt and decrypt files using the mouse context menu"
+arch=('x86_64')
+url="https://github.com/daniel-dumitrascu/filecrypt"
+license=("MIT")
+makedepends=('git' 'make' 'xmlstarlet')
+depends=('go')
+install=service.install
+
+_server_app_name="filecrypt_server"
+_client_app_name="filecrypt_client"
+_crypt_tool_name="crypt"
+_service_name="filecrypt.service"
+
+prepare() {
+  git clone --depth=1 --branch=main https://github.com/daniel-dumitrascu/filecrypt.git "$pkgname"
+}
+
+build() {
+  cd "$pkgname"
+  make
+}
+
+package() {
+  cd "$pkgname"/server
+  install -Dm755 ./server "$pkgdir/usr/bin/$_server_app_name"
+
+  cd bin
+  pwd
+  install -Dm755 ./crypt "$pkgdir"/usr/bin/"$_crypt_tool_name"
+  
+  cd ../../client
+  install -Dm755 ./client "$pkgdir/usr/bin/$_client_app_name"
+
+  cd ../server/daemon
+  install -Dm755 ./"$_service_name" "$pkgdir/etc/systemd/system/$_service_name"
+
+  cd $HOME
+  mkdir -p ".$pkgname"
+  mkdir -p ".icons"
+
+  install -Dm755 "$srcdir/$pkgname/client/resources/encrypt.ico" ".icons/encrypt.ico"
+  install -Dm755 "$srcdir/$pkgname/client/resources/decrypt.ico" ".icons/decrypt.ico"
+  install -Dm755 "$srcdir/$pkgname/client/resources/key.ico" ".icons/key.ico"
+}

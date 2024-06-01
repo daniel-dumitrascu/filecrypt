@@ -1,0 +1,19 @@
+post_install() {
+  systemctl daemon-reload
+  systemctl start filecrypt.service
+  systemctl enable filecrypt.service
+}
+
+post_remove() {
+  _username=$(who | cut -d' ' -f1 | sed '1p;d')
+  cd "$pkgdir/home/${_username}/.config/Thunar"
+
+  xmlstarlet ed --inplace -d "//action[name='Encrypt source']" "uca.xml"
+  xmlstarlet ed --inplace -d "//action[name='Decrypt source']" "uca.xml"
+  xmlstarlet ed --inplace -d "//action[name='Add key']" "uca.xml"
+  xmlstarlet ed --inplace -d "//action[name='Generate key']" "uca.xml"
+
+  rm  -rf "$pkgdir/home/${_username}/.icons/encrypt.ico"
+  rm  -rf "$pkgdir/home/${_username}/.icons/decrypt.ico"
+  rm  -rf "$pkgdir/home/${_username}/.icons/key.ico"
+}

@@ -24,13 +24,13 @@
       <a href="#about-the-project">About The Project</a>
     </li>
     <li>
-      <a href="#getting-started">Build</a>
+      <a href="#build">Build</a>
     </li>
     <li>
-      <a href="#getting-started">Install</a>
+      <a href="#install">Install</a>
       <ul>
-        <li><a href="#installation-on-windows-11">Windows</a></li>
-        <li><a href="#installation-on-linux-manjaro-with-xfce">Linux</a></li>
+        <li><a href="#windows">Windows</a></li>
+        <li><a href="#linux">Linux</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>

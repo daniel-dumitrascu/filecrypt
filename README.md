@@ -22,22 +22,15 @@
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
     </li>
     <li>
-      <a href="#getting-started">Building</a>
+      <a href="#getting-started">Build</a>
+    </li>
+    <li>
+      <a href="#getting-started">Install</a>
       <ul>
         <li><a href="#installation-on-windows-11">Windows</a></li>
         <li><a href="#installation-on-linux-manjaro-with-xfce">Linux</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Installing</a>
-      <ul>
-        <li><a href="#installation-on-windows-11">Windows 11</a></li>
-        <li><a href="#installation-on-linux-manjaro-with-xfce">Linux (Manjaro with xfce)</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
@@ -47,7 +40,6 @@
 </details>
 
 
-<!-- ABOUT THE PROJECT -->
 ## About The Project
 
 I wanted a tool that can easily secure my data stored on cloud storage services like Google Drive or Dropbox.
@@ -57,7 +49,7 @@ Because of this I started developing this tool that can easily encrypt or decryp
 To solve this I created a client-server system where the client sends requests like encrypt, decrypt or generate a new key and the server calls the command line tool described above. The interaction with data is made possible by right clicking on the file or directory and selecting the appropriate action from the context menu. This is easy and simple to use.
 
 
-### Built With
+## Build
 
 <p align="left">
   <a href="https://go.dev/">
@@ -68,31 +60,39 @@ To solve this I created a client-server system where the client sends requests l
   </a>
 </p>
 
+This will build the crypt tool, the client and the server.
 
-<!-- GETTING STARTED -->
-## Getting Started
-
-??? This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
-
-### Installation on Windows 11
-
-1. Install make 
+1. Install go and make 
 2. Clone the repo
    ```sh
    git clone https://github.com/daniel-dumitrascu/filecrypt.git
    ```
-3. Open a command prompt by running it as administrator. This is needed because modifications to registry will be made. 
-4. Go into [filecrypt repo]\installers\windows
-5. Run `install.bat`
+3. Open a terminal and run the ```make``` command in the project root.
+
+## Install
+
+This will install, setup and start the app. The repository contains installers for both Windows and Linux located at `project root/installers`
+
+### Windows
+
+Supported versions: Windows 11
+
+1. Open a command prompt by running it as administrator. This is needed because modifications to registry will be made.
+2. Go into `project root/installers/windows`
+3. Run `install.bat`
+4. If everything went ok, the server should be running in a terminal
    
 
-### Installation on Linux (Manjaro with xfce)
+### Linux
 
-_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
+Supported versions: Manjaro with xfce
+
+1. Open a terminal.
+2. Go into `project root/installers/linux`
+3. Run `makepkg -si`
+4. If everything went ok, a new service was created representing the server. This is started and enabled by default
+
    
-
-<!-- USAGE EXAMPLES -->
 ## Usage
 
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
@@ -100,7 +100,6 @@ Use this space to show useful examples of how a project can be used. Additional 
 _For more examples, please refer to the [Documentation](https://example.com)_
 
 
-<!-- CONTACT -->
 ## Author
 
 👤 **Daniel Dumitrascu**
@@ -110,7 +109,6 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 - Email: daniel.dumitrascu.dev@gmail.com
 
 
-<!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.

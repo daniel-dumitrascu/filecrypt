@@ -1,6 +1,7 @@
 package crypto
 
 import (
+	"crypt/utils"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -86,7 +87,7 @@ func loadAndDecodeKey(keypath string) ([]byte, error) {
 	return key, nil
 }
 
-func encryptFile(filepath string, outputpath string, key []byte) error {
+func encryptFile(inputpath string, outputpath string, key []byte) error {
 	// Load cipher
 	aesgcm, nonce, err := loadCipherForEncryption(key)
 	if err != nil {
@@ -95,7 +96,7 @@ func encryptFile(filepath string, outputpath string, key []byte) error {
 	}
 
 	// Open the file that will be encrypted
-	sourceFileHandler, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
+	sourceFileHandler, err := os.OpenFile(inputpath, os.O_RDONLY, 0644)
 	if err != nil {
 		fmt.Println("Error opening the target file.")
 		return err
@@ -103,7 +104,7 @@ func encryptFile(filepath string, outputpath string, key []byte) error {
 	defer sourceFileHandler.Close()
 
 	// Open the file that will store the encrypted data
-	secretFilepath := getEncryptedFilepath(filepath, outputpath)
+	secretFilepath := getEncryptedFilepath(inputpath, outputpath)
 	destFileHandler, err := os.OpenFile(secretFilepath, os.O_APPEND|os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println("Error opening the destination file.")
@@ -112,7 +113,7 @@ func encryptFile(filepath string, outputpath string, key []byte) error {
 	defer destFileHandler.Close()
 
 	// Calculate the number of chunk data based on the chunk size
-	fileSize, err := getFileSize(filepath)
+	fileSize, err := getFileSize(inputpath)
 	if err != nil {
 		fmt.Println("Error getting the file size of the target file.")
 		return err
@@ -129,11 +130,11 @@ func encryptFile(filepath string, outputpath string, key []byte) error {
 		return err
 	}
 
-	chunkIndex := 1
+	filename := filepath.Base(inputpath)
+	p, bar := utils.CreateProgressBar(chunckNr, filename+": encrypting ")
+
 	for readSize > 0 {
 		encryptedChunck := encryptDataBlock(chunckBuffer[:readSize], aesgcm, nonce)
-		fmt.Println("Encrypting data chunk", chunkIndex, " of ", chunckNr, " (read ", len(chunckBuffer), " bytes) (encrypted ", len(encryptedChunck), " bytes)")
-		chunkIndex++
 
 		if _, err = destFileHandler.Write(encryptedChunck); err != nil {
 			fmt.Println("Error writing encrypted data: ", err)
@@ -144,13 +145,16 @@ func encryptFile(filepath string, outputpath string, key []byte) error {
 			return err
 		}
 
+		bar.Increment()
+
 		readSize, _ = sourceFileHandler.Read(chunckBuffer)
 	}
 
+	p.Wait()
 	return nil
 }
 
-func decryptFile(filepath string, outputpath string, key []byte) error {
+func decryptFile(inputpath string, outputpath string, key []byte) error {
 	// Load cipher
 	aesgcm, err := loadCipherForDecryption(key)
 	if err != nil {
@@ -159,7 +163,7 @@ func decryptFile(filepath string, outputpath string, key []byte) error {
 	}
 
 	// Open the file that will be decrypted
-	sourceFileHandler, err := os.OpenFile(filepath, os.O_RDONLY, 0644)
+	sourceFileHandler, err := os.OpenFile(inputpath, os.O_RDONLY, 0644)
 	if err != nil {
 		fmt.Println("Error opening the target file.")
 		return err
@@ -167,7 +171,7 @@ func decryptFile(filepath string, outputpath string, key []byte) error {
 	defer sourceFileHandler.Close()
 
 	// Open the file that will store the decrypted data
-	clearFilepath := getDecryptedFilepath(filepath, outputpath)
+	clearFilepath := getDecryptedFilepath(inputpath, outputpath)
 	destFileHandler, err := os.OpenFile(clearFilepath, os.O_APPEND|os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println("Error opening the destination file.")
@@ -175,7 +179,7 @@ func decryptFile(filepath string, outputpath string, key []byte) error {
 	}
 	defer destFileHandler.Close()
 
-	fileSize, err := getFileSize(filepath)
+	fileSize, err := getFileSize(inputpath)
 	if err != nil {
 		fmt.Println("Error getting the file size of the target file.")
 		return err
@@ -185,12 +189,15 @@ func decryptFile(filepath string, outputpath string, key []byte) error {
 	bytesToRead := 28 + chunkSize
 	chunckNr := int64(math.Ceil(float64(fileSize) / float64(bytesToRead)))
 	chunckBuffer := make([]byte, bytesToRead)
+
+	filename := filepath.Base(inputpath)
+	p, bar := utils.CreateProgressBar(chunckNr, filename+": encrypting ")
+
 	dataReadSize, err := sourceFileHandler.Read(chunckBuffer)
 	if err != nil {
 		fmt.Println("Error reading file.")
 		return err
 	}
-	chunckIndex := 1
 
 	for dataReadSize > 0 {
 		decryptedChunck, err := decodeDataBlock(chunckBuffer[:dataReadSize], aesgcm)
@@ -198,8 +205,6 @@ func decryptFile(filepath string, outputpath string, key []byte) error {
 			fmt.Println("Error during data chunck decryption.")
 			return err
 		}
-		fmt.Println("Decrypting data chunk", chunckIndex, " of ", chunckNr, " (read ", len(chunckBuffer), " bytes) (decrypted ", len(decryptedChunck), " bytes)")
-		chunckIndex++
 
 		if _, err = destFileHandler.Write(decryptedChunck); err != nil {
 			fmt.Println("Error writing decrypted data.")
@@ -210,9 +215,12 @@ func decryptFile(filepath string, outputpath string, key []byte) error {
 			return err
 		}
 
+		bar.Increment()
+
 		dataReadSize, _ = sourceFileHandler.Read(chunckBuffer)
 	}
 
+	p.Wait()
 	return nil
 }
 

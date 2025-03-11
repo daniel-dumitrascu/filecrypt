@@ -45,7 +45,7 @@ func (env *Environment) Setup() {
 
 		if len(env.key) > 0 {
 			callToolEncrypt(&toolPath, &inputPath, &outputPath, &env.key)
-			log.Info("Successfully encrypting the file: " + inputPath)
+			log.Info("Encryption task was completed successfully!")
 		} else {
 			log.Error("Cannot encrypt because no key has been found")
 		}
@@ -63,7 +63,7 @@ func (env *Environment) Setup() {
 
 		if len(env.key) > 0 {
 			callToolDecrypt(&toolPath, &inputPath, &outputPath, &env.key)
-			log.Info("Successfully decrypting the file: " + inputPath)
+			log.Info("Decryption task was completed successfully!")
 		} else {
 			log.Error("Cannot decrypt because no key has been found")
 		}
@@ -173,12 +173,13 @@ func callToolEncrypt(toolPath *string, inputPath *string, outputPath *string, ke
 
 func callCryptTool(toolPath *string, inputPath *string, outputPath *string, keyPath *string, action string) {
 	c := exec.Command(*toolPath, action, *keyPath, *inputPath, *outputPath)
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
 
 	log := utils.GetLogger()
 
-	if out, err := c.Output(); err != nil {
+	if err := c.Run(); err != nil {
 		log.Error("Error when encrypting: ", err)
-		log.Error("Command output: ", out)
 	}
 }
 

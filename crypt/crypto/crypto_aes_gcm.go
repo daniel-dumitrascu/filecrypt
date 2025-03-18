@@ -131,7 +131,10 @@ func encryptFile(inputpath string, outputpath string, key []byte) error {
 	}
 
 	filename := filepath.Base(inputpath)
-	p, bar := utils.CreateProgressBar(chunckNr, filename+": encrypting ")
+	if len(filename) > 20 {
+		filename = filename[:21] + "..."
+	}
+	p, bar := utils.CreateProgressBar(chunckNr, filename+" - encrypting ")
 
 	for readSize > 0 {
 		encryptedChunck := encryptDataBlock(chunckBuffer[:readSize], aesgcm, nonce)
@@ -191,7 +194,10 @@ func decryptFile(inputpath string, outputpath string, key []byte) error {
 	chunckBuffer := make([]byte, bytesToRead)
 
 	filename := filepath.Base(inputpath)
-	p, bar := utils.CreateProgressBar(chunckNr, filename+": encrypting ")
+	if len(filename) > 20 {
+		filename = filename[:21] + "..."
+	}
+	p, bar := utils.CreateProgressBar(chunckNr, filename+" - encrypting ")
 
 	dataReadSize, err := sourceFileHandler.Read(chunckBuffer)
 	if err != nil {

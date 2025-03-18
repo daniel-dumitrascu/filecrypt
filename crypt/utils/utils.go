@@ -8,7 +8,7 @@ import (
 )
 
 func CreateProgressBar(steps int64, text string) (*mpb.Progress, *mpb.Bar) {
-	barWidth := 64
+	barWidth := 32
 	p := mpb.New(mpb.WithWidth(barWidth))
 
 	return p, p.New(steps,

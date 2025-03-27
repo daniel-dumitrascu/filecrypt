@@ -1,9 +1,10 @@
 package main
 
 import (
-	"crypt/crypto"
 	"fmt"
 	"os"
+
+	"github.com/daniel-dumitrascu/crypt/crypto"
 )
 
 func main() {

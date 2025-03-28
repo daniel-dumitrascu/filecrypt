@@ -2,7 +2,6 @@ package config
 
 const APP_GENERIC_NAME = "filecrypt"
 const APP_CLIENT_NAME = "filecrypt_client"
-const CRYPT_TOOL_NAME = "crypt"
 
 const TASKS_CHANNEL_SIZE = 30
 const MAX_GOROUTINES_NR = 5

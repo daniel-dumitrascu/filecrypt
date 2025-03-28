@@ -6,9 +6,9 @@ import (
 	"errors"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"server/config"
+	"server/encrypt"
 	"server/keymgn"
 	"server/request"
 	"server/utils"
@@ -27,11 +27,7 @@ func (env *Environment) Setup() {
 	osmanager.SpecificSetup()
 	var installKeyPath = osmanager.GetKeysDirPath()
 	env.key = keymgn.GetLatestKey(&installKeyPath)
-	toolPath := osmanager.GetBinDirPath() + "/" + config.CRYPT_TOOL_NAME
-
-	if config.CURRENT_PLATFORM == config.PLATFORM_WIN {
-		toolPath += ".exe"
-	}
+	secureCrypt := encrypt.CreateSecureCrypt()
 
 	var handleEncryptAction func(req *request.RequestData) = func(req *request.RequestData) {
 		inputPath := req.TargetPath
@@ -44,8 +40,11 @@ func (env *Environment) Setup() {
 		}
 
 		if len(env.key) > 0 {
-			callToolEncrypt(&toolPath, &inputPath, &outputPath, &env.key)
-			log.Info("Encryption task was completed successfully!")
+			if err := secureCrypt.Encrypt(&inputPath, &outputPath, &env.key); err != nil {
+				log.Error("Encryption problem: " + err.Error())
+			} else {
+				log.Info("Encryption task was completed successfully!")
+			}
 		} else {
 			log.Error("Cannot encrypt because no key has been found")
 		}
@@ -62,8 +61,11 @@ func (env *Environment) Setup() {
 		}
 
 		if len(env.key) > 0 {
-			callToolDecrypt(&toolPath, &inputPath, &outputPath, &env.key)
-			log.Info("Decryption task was completed successfully!")
+			if err := secureCrypt.Decrypt(&inputPath, &outputPath, &env.key); err != nil {
+				log.Error("Decryption problem: " + err.Error())
+			} else {
+				log.Info("Decryption task was completed successfully!")
+			}
 		} else {
 			log.Error("Cannot decrypt because no key has been found")
 		}
@@ -98,8 +100,9 @@ func (env *Environment) Setup() {
 		log.Info("Calculated path: ", outputKeyPath)
 
 		log.Info("Gen key action was triggered: " + outputKeyPath)
-		key := callToolGenKey(&toolPath)
+		key := secureCrypt.Genkey()
 		if key == nil {
+			log.Info("The new key wasn't generated successfully.")
 			return
 		}
 
@@ -146,41 +149,6 @@ func (env *Environment) processHandler(w http.ResponseWriter, req *http.Request)
 	}
 
 	env.pool.AddTask(&reqData)
-}
-
-func callToolGenKey(toolPath *string) []byte {
-	c := exec.Command(*toolPath, "genkey")
-
-	log := utils.GetLogger()
-	out, err := c.Output()
-
-	if err != nil {
-		log.Error("Error when generating a new key: ", err)
-		log.Error("Command output: ", out)
-		return nil
-	}
-
-	return out
-}
-
-func callToolDecrypt(toolPath *string, inputPath *string, outputPath *string, keyPath *string) {
-	callCryptTool(toolPath, inputPath, outputPath, keyPath, "decrypt")
-}
-
-func callToolEncrypt(toolPath *string, inputPath *string, outputPath *string, keyPath *string) {
-	callCryptTool(toolPath, inputPath, outputPath, keyPath, "encrypt")
-}
-
-func callCryptTool(toolPath *string, inputPath *string, outputPath *string, keyPath *string, action string) {
-	c := exec.Command(*toolPath, action, *keyPath, *inputPath, *outputPath)
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-
-	log := utils.GetLogger()
-
-	if err := c.Run(); err != nil {
-		log.Error("Error when encrypting: ", err)
-	}
 }
 
 func ComputeOutputPath(inputPath *string) (string, error) {

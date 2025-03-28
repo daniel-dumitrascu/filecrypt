@@ -25,16 +25,10 @@ TOOL_BIN := crypt$(EXE)
 # Define the executables with their paths
 CLIENT := $(CLIENT_DIR)$(SEPARATOR)$(CLIENT_BIN)
 SERVER := $(SERVER_DIR)$(SEPARATOR)$(SERVER_BIN)
-SERVER_BIN_DIR := $(SERVER_DIR)$(SEPARATOR)bin
-CRYPT := $(SERVER_BIN_DIR)$(SEPARATOR)$(TOOL_BIN)
+CRYPT := $(TOOL_DIR)$(SEPARATOR)$(TOOL_BIN)
 
 # Default target to build all executables
-.PHONY: all
-all: $(CLIENT) $(SERVER) $(CRYPT)
-
-# Rule to build the tool
-$(CRYPT): $(wildcard $(TOOL_DIR)/*.go) | $(SERVER_BIN_DIR)
-	cd $(TOOL_DIR) && $(GO) build -o ../$(SERVER_BIN_DIR)/$(TOOL_BIN) .
+all: $(CLIENT) $(SERVER)
 
 # Rule to build the client
 $(CLIENT): $(wildcard $(CLIENT_DIR)/*.go)
@@ -44,11 +38,11 @@ $(CLIENT): $(wildcard $(CLIENT_DIR)/*.go)
 $(SERVER): $(wildcard $(SERVER_DIR)/*.go)
 	cd $(SERVER_DIR) && $(GO) build -o $(SERVER_BIN) .
 
-# Ensure the bin directory exists
-$(SERVER_BIN_DIR):
-	mkdir $(SERVER_BIN_DIR)
-
+# Build the command line encrypt tool
+tool: $(CRYPT)
+$(CRYPT): $(wildcard $(TOOL_DIR)/*.go)
+	cd $(TOOL_DIR) && $(GO) build -o $(TOOL_BIN) .
+	
 # Clean up the executables
-.PHONY: clean
 clean:
 	$(RMCMD) $(CRYPT) $(CLIENT) $(SERVER)

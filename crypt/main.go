@@ -16,7 +16,7 @@ func main() {
 	}
 
 	action := args[0]
-	var c crypto.Crypto = crypto.CreateCryptoAesGcm()
+	var c crypto.Crypto = crypto.CryptoAesGcm{}
 
 	if action == "genkey" {
 		generatedkey := c.GenKey()

@@ -8,7 +8,7 @@ type SecureCrypt struct {
 
 func CreateSecureCrypt() *SecureCrypt {
 	sc := SecureCrypt{}
-	sc.c = crypto.CreateCryptoAesGcm()
+	sc.c = crypto.CryptoAesGcm{}
 	return &sc
 }
 

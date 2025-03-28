@@ -14,7 +14,6 @@ install=service.install
 
 _server_app_name="filecrypt_server"
 _client_app_name="filecrypt_client"
-_crypt_tool_name="crypt"
 _service_name="filecrypt.service"
 
 prepare() {
@@ -29,12 +28,8 @@ build() {
 package() {
   cd "$pkgname"/server
   install -Dm755 ./server "$pkgdir/usr/bin/$_server_app_name"
-
-  cd bin
-  pwd
-  install -Dm755 ./crypt "$pkgdir"/usr/bin/"$_crypt_tool_name"
   
-  cd ../../client
+  cd ../client
   install -Dm755 ./client "$pkgdir/usr/bin/$_client_app_name"
 
   cd ../server/daemon

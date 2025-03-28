@@ -37,7 +37,6 @@ mkdir "%RESOURCE_PATH%"
 
 copy /Y %INSTALL_PATH%\%GIT_REPO_NAME%\client\client.exe "%BIN_PATH%"\filecrypt_client.exe
 copy /Y %INSTALL_PATH%\%GIT_REPO_NAME%\server\server.exe "%BIN_PATH%"\filecrypt_server.exe
-copy /Y %INSTALL_PATH%\%GIT_REPO_NAME%\server\bin\crypt.exe "%BIN_PATH%"\crypt.exe
 copy /Y %INSTALL_PATH%\%GIT_REPO_NAME%\client\resources\encrypt.ico "%RESOURCE_PATH%"\encrypt.ico
 copy /Y %INSTALL_PATH%\%GIT_REPO_NAME%\client\resources\decrypt.ico "%RESOURCE_PATH%"\decrypt.ico
 copy /Y %INSTALL_PATH%\%GIT_REPO_NAME%\client\resources\key.ico "%RESOURCE_PATH%"\key.ico

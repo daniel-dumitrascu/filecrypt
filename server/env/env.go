@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"server/config"
-	"server/encrypt"
+	"server/crypto"
 	"server/keymgn"
 	"server/request"
 	"server/utils"
@@ -27,7 +27,7 @@ func (env *Environment) Setup() {
 	osmanager.SpecificSetup()
 	var installKeyPath = osmanager.GetKeysDirPath()
 	env.key = keymgn.GetLatestKey(&installKeyPath)
-	secureCrypt := encrypt.CreateSecureCrypt()
+	secureCrypt := crypto.CryptoAesGcm{}
 
 	var handleEncryptAction func(req *request.RequestData) = func(req *request.RequestData) {
 		inputPath := req.TargetPath
@@ -40,7 +40,7 @@ func (env *Environment) Setup() {
 		}
 
 		if len(env.key) > 0 {
-			if err := secureCrypt.Encrypt(&inputPath, &outputPath, &env.key); err != nil {
+			if err := secureCrypt.EncryptDir(inputPath, outputPath, env.key); err != nil {
 				log.Error("Encryption problem: " + err.Error())
 			} else {
 				log.Info("Encryption task was completed successfully!")
@@ -61,7 +61,7 @@ func (env *Environment) Setup() {
 		}
 
 		if len(env.key) > 0 {
-			if err := secureCrypt.Decrypt(&inputPath, &outputPath, &env.key); err != nil {
+			if err := secureCrypt.DecryptDir(inputPath, outputPath, env.key); err != nil {
 				log.Error("Decryption problem: " + err.Error())
 			} else {
 				log.Info("Decryption task was completed successfully!")
@@ -100,13 +100,13 @@ func (env *Environment) Setup() {
 		log.Info("Calculated path: ", outputKeyPath)
 
 		log.Info("Gen key action was triggered: " + outputKeyPath)
-		key := secureCrypt.Genkey()
-		if key == nil {
+		key := secureCrypt.GenKey()
+		if key == "" {
 			log.Info("The new key wasn't generated successfully.")
 			return
 		}
 
-		encodedKey := base64.StdEncoding.EncodeToString(key)
+		encodedKey := base64.StdEncoding.EncodeToString([]byte(key))
 		if err := os.WriteFile(outputKeyPath, []byte(encodedKey), 0644); err != nil {
 			log.Error("Cannot save key to file")
 			return
